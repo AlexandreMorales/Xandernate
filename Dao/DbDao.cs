@@ -71,7 +71,7 @@ namespace Xandernate.Dao
                 }
                 else
                 {
-                    parameters[i] = properties[i].GetValue(obj, null);
+                    parameters[i] = properties[i].GetValue(obj, null) ?? "";
                 }
             }
 
