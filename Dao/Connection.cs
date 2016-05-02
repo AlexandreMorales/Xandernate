@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace Xandernate.Dao
     class Connection
     {
         private static Connection conn;
+        private static string connectionString;
 
         private Connection()
         {
@@ -23,15 +25,16 @@ namespace Xandernate.Dao
             return conn;
         }
 
-        public SqlConnection getConnection(string database = @"C:\Users\afraga\Documents\testeReflection.mdf")
+        public SqlConnection getConnection(string connString)
         {
-            return new SqlConnection(@"Data Source=(LocalDB)\v11.0;AttachDbFilename=" + database + ";Integrated Security=True;Connect Timeout=30");
+            connectionString = connString;
+            return new SqlConnection(connString);
         }
 
         public static void close()
         {
-            if (conn.getConnection() != null)
-                conn.getConnection().Close();
+            if (conn.getConnection(connectionString) != null)
+                conn.getConnection(connectionString).Close();
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,145 +11,79 @@ namespace Xandernate.Dao
 {
     class DbDao<Classe> : GenericDAO, IDbDao<Classe>
     {
+        /*         
+         * IDENTITY(1,1) | FOREIGN KEY          
+         * CONST STRINGS REPLACES
+         */
 
-        Type typeReflection;
+        private Type TypeReflection;
 
         public DbDao(string _database)
             : base(_database)
         {
-            typeReflection = typeof(Classe);
-            createTable();
+            TypeReflection = typeof(Classe);
+            CreateTable();
             Migrations();
         }
 
         public Classe Add(Classe obj)
         {
-            string query = "";
+            List<Object> parameters = new List<Object>();
 
-            PropertyInfo[] properties = typeReflection.GetProperties();
+            string query = CreateInsert(obj, ref parameters) + " SELECT CAST(SCOPE_IDENTITY() as int);";
 
-            query = "INSERT INTO " + typeReflection.Name + " (";
+            List<string[]> fields = executeQuery(query, parameters.ToArray());
+            PropertyInfo idProperty = TypeReflection.GetProperty(GetIdField(TypeReflection));
 
-            foreach (PropertyInfo property in properties)
-            {
-                if (!isId(property))
-                {
-                    if (isNotPrimitive(property.PropertyType))
-                    {
-                        query += property.Name + "Id, ";
-                    }
-                    else
-                    {
-                        query += property.Name + ", ";
-                    }
-                }
-            }
-
-            query = query.Substring(0, (query.Length - 2)) + ")";
-            query += " VALUES (";
-
-            for (int i = 0; i < properties.Length; i++)
-            {
-                if (!isId(properties[i]))
-                {
-                    query += "@" + i.ToString() + ", ";
-                }
-            }
-
-            query = query.Substring(0, (query.Length - 2)) + ")";
-
-            Object[] parameters = new Object[properties.Length];
-
-            for (int i = 0; i < properties.Length; i++)
-            {
-                if (isNotPrimitive(properties[i].PropertyType))
-                {
-                    PropertyInfo fkId = GetIdFK(properties[i]);
-                    Object fkObject = properties[i].GetValue(obj, null);
-                    parameters[i] = fkId.GetValue(fkObject, null);
-                }
-                else
-                {
-                    parameters[i] = properties[i].GetValue(obj, null) ?? "";
-                }
-            }
-
-            executeQuery(query, parameters);
-            Classe[] objs = FindAll();
-            return objs[objs.Length - 1];
+            idProperty.SetValue(obj, ConvertToType(idProperty, fields[0][0]));
+            return obj;
         }
 
         public Classe Find(Object id)
         {
             string query = "";
 
-            string IdField = GetIdField(typeReflection);
+            string IdField = GetIdField(TypeReflection);
 
-            query = "SELECT * FROM " + typeReflection.Name + " WHERE " + IdField + "=@0";
+            query = "SELECT * FROM " + TypeReflection.Name + " WHERE " + IdField + "=@0;";
 
-            List<string[]> fields = executeQuery(query, id);
-            string[] fieldsDB = getFieldsNames(typeReflection.Name);
+            return MapToObjects(executeQuery(query, id)).OfType<Classe>().FirstOrDefault();
+        }
 
-            if (fields.Count != 0)
-            {
-                Object[] objsFields = GetFields(fields[0], typeReflection);
-                Classe obj = (Classe)FormatterServices.GetUninitializedObject(typeReflection);
-                for (int i = 0; i < fieldsDB.Length; i++)
-                {
-                    if (isNotPrimitive(objsFields[i].GetType()))
-                        typeReflection.GetProperty(fieldsDB[i].Replace("Id", "")).SetValue(obj, objsFields[i]);
-                    else
-                        typeReflection.GetProperty(fieldsDB[i]).SetValue(obj, objsFields[i]);
-                }
-                return obj;
-            }
-            return default(Classe);
+        public Classe Find<Att>(Expression<Func<Classe, Att>> expression, Att value)
+        {
+            var member = expression.Body as MemberExpression;
+            var fieldName = member.Member.Name;
+            string query = "SELECT * FROM " + TypeReflection.Name + " WHERE " + fieldName + "=@0";
+
+            return MapToObjects(executeQuery(query, value)).OfType<Classe>().FirstOrDefault();
         }
 
         public Classe[] FindAll()
         {
-            string query = "SELECT * FROM " + typeReflection.Name;
+            string query = "SELECT * FROM " + TypeReflection.Name + ";";
 
-            List<string[]> fields = executeQuery(query);
-            string[] fieldsDB = getFieldsNames(typeReflection.Name);
-
-            Classe[] objs = new Classe[fields.Count];
-            Object[] objsFields;
-
-            for (int i = 0; i < fields.Count; i++)
-            {
-                objsFields = GetFields(fields[i], typeReflection);
-                objs[i] = (Classe)FormatterServices.GetUninitializedObject(typeReflection);
-                for (int j = 0; j < fieldsDB.Length; j++)
-                {
-                    if (isNotPrimitive(objsFields[j].GetType()))
-                        typeReflection.GetProperty(fieldsDB[j].Replace("Id", "")).SetValue(objs[i], objsFields[j]);
-                    else
-                        typeReflection.GetProperty(fieldsDB[j]).SetValue(objs[i], objsFields[j]);
-                }
-            }
-
-            return objs;
+            return MapToObjects(executeQuery(query)).OfType<Classe>().ToArray();
         }
 
         public void Remove(Classe obj)
         {
             string query = "";
 
-            string IdField = GetIdField(this.typeReflection);
+            string IdField = GetIdField(this.TypeReflection);
 
-            query = "DELETE FROM " + typeReflection.Name + " WHERE " + IdField + "=@0";
+            query = "DELETE FROM " + TypeReflection.Name + " WHERE " + IdField + "=@0;";
 
-            executeQueryNoReturn(query, typeReflection.GetProperty(IdField).GetValue(obj, null));
+            executeQueryNoReturn(query, TypeReflection.GetProperty(IdField).GetValue(obj, null));
         }
 
         public void Remove(Object id)
         {
             string query = "";
 
-            string IdField = GetIdField(this.typeReflection);
+            string IdField = GetIdField(this.TypeReflection);
 
-            query = "DELETE FROM " + typeReflection.Name + " WHERE " + IdField + "=@0";
+            query = "DELETE FROM " + TypeReflection.Name + " WHERE " + IdField + "=@0;";
 
             executeQueryNoReturn(query, id);
         }
@@ -158,8 +91,8 @@ namespace Xandernate.Dao
         public void Remove(Expression<Func<Classe, bool>> expression)
         {
             var body = expression.Body as BinaryExpression;
-            var validation = breakExpression(body);
-            string query = "DELETE FROM " + typeReflection.Name + " WHERE " + validation;
+            var validation = BreakExpression(body);
+            string query = "DELETE FROM " + TypeReflection.Name + " WHERE " + validation + ";";
 
             executeQueryNoReturn(query);
         }
@@ -168,37 +101,35 @@ namespace Xandernate.Dao
         {
             var member = expression.Body as MemberExpression;
             var fieldName = member.Member.Name;
-            string query = "DELETE FROM " + typeReflection.Name + " WHERE " + fieldName + "=@0";
+            string query = "DELETE FROM " + TypeReflection.Name + " WHERE " + fieldName + "=@0;";
 
             executeQueryNoReturn(query, value);
         }
 
         public void AddRange(params Classe[] objs)
         {
+            List<Object> parameters = new List<Object>();
+            string query = "";
             foreach (Classe obj in objs)
             {
-                Add(obj);
+                query += CreateInsert(obj, ref parameters);
             }
+            executeQueryNoReturn(query, parameters.ToArray());
         }
 
         public void AddOrUpdate(params Classe[] objs)
         {
-            string IdField = GetIdField(typeReflection);
-
+            string IdField = GetIdField(TypeReflection);
             object idValue;
 
             foreach (var obj in objs)
             {
-                idValue = typeReflection.GetProperty(IdField).GetValue(obj, null);
+                idValue = TypeReflection.GetProperty(IdField).GetValue(obj, null);
 
                 if (Find(idValue) == null)
-                {
                     Add(obj);
-                }
                 else
-                {
                     Update(obj);
-                }
             }
         }
 
@@ -206,64 +137,149 @@ namespace Xandernate.Dao
         {
             var member = expression.Body as MemberExpression;
             var fieldName = member.Member.Name;
-            object value;
+            Att value;
 
             foreach (var obj in objs)
             {
-                value = typeReflection.GetProperty(fieldName).GetValue(obj, null);
+                value = (Att)TypeReflection.GetProperty(fieldName).GetValue(obj, null);
 
-                if (Find(fieldName, value) == null)
-                {
+                if (Find(expression, value) == null)
                     Add(obj);
-                }
                 else
-                {
                     Update(obj);
-                }
             }
         }
 
-        public void Update(Classe obj)
+        public void InsertOrUpdateSQL(Classe obj, Expression<Func<Classe, object>> IdentifierExpression = null)
+        {
+            PropertyInfo[] properties = TypeReflection.GetProperties();
+            List<Object> parameters = new List<Object>();
+            object propValue = "";
+            string _where = "";
+            string _update = "";
+            string _params = "";
+            string _values = "";
+            string command = "if exists (select * from [dbo].[_tabela] where _where)\n" +
+                             " begin \n" +
+                             "     update [dbo].[_tabela] set _update \n" +
+                             "     where _where \n" +
+                             " end \n" +
+                             " else \n" +
+                             " begin \n" +
+                             "   insert into [dbo].[_tabela] (_params)\n" +
+                             "   values (_values)\n" +
+                             " end";
+
+            if (IdentifierExpression != null)
+            {
+                var expression = IdentifierExpression.Body as NewExpression;
+                foreach (var member in expression.Members)
+                {
+                    propValue = TypeReflection.GetProperty(member.Name).GetValue(obj, null);
+                    _where += member.Name + ((propValue == null) ? " is null" : " = @" + member.Name.ToLower()) + " and ";
+                }
+                _where = _where.Substring(0, _where.Length - 5);
+            }
+            else
+                _where = "Id = @id";
+
+            int cont = 0;
+            foreach (var prop in properties)
+            {
+                propValue = TypeReflection.GetProperty(prop.Name).GetValue(obj, null);
+                if (propValue != null && !prop.Name.Equals("Id") && !prop.GetGetMethod().IsVirtual)
+                {
+                    parameters.Add(propValue);
+                    _update += prop.Name + " = @" + prop.Name.ToLower() + ", ";
+                    _params += "[" + prop.Name + "], ";
+                    _values += "@" + cont.ToString() + ", ";
+                    cont++;
+                }
+            }
+
+            executeQueryNoReturn(command.Replace("_where", _where)
+                              .Replace("_tabela", TypeReflection.Name)
+                              .Replace("_update", _update.Substring(0, _update.Length - 2))
+                              .Replace("_params", _params.Substring(0, _params.Length - 2))
+                              .Replace("_values", _values.Substring(0, _values.Length - 2)),
+                              parameters.ToArray());
+        }
+
+        public Classe Update(Classe obj)
         {
             string query = "";
-            string IdField = GetIdField(this.typeReflection);
-            Object IdValue = typeReflection.GetProperty(IdField).GetValue(obj, null);
+            string IdField = GetIdField(this.TypeReflection);
+            Object IdValue = TypeReflection.GetProperty(IdField).GetValue(obj, null);
 
-            PropertyInfo[] properties = typeReflection.GetProperties();
+            PropertyInfo[] properties = TypeReflection.GetProperties();
+            List<Object> parameters = new List<Object>();
+            parameters.Add(IdValue);
 
-            query = "UPDATE " + typeReflection.Name + " SET ";
+            query = "UPDATE " + TypeReflection.Name + " SET ";
+            int cont = 1;
 
-            for (int i = 0; i < properties.Length; i++)
-            {
-                if (!isId(properties[i]))
+            foreach (PropertyInfo property in properties)
+                if (!IsId(property))
                 {
-                    query += properties[i].Name + "=@" + i.ToString() + ", ";
+                    if (IsNotPrimitive(property.PropertyType))
+                    {
+                        query += property.Name + "Id=@" + cont.ToString() + ", ";
+                        parameters.Add(GetIdFK(property).GetValue(property.GetValue(obj, null), null));
+                    }
+                    else
+                    {
+                        query += property.Name + "=@" + cont.ToString() + ", ";
+                        parameters.Add(property.GetValue(obj, null));
+                    }
+                    cont++;
+                }
+
+            query = query.Substring(0, (query.Length - 2)) + " WHERE " + IdField + "=@0";
+
+            executeQueryNoReturn(query, parameters.ToArray());
+            return Find(IdValue);
+        }
+
+        public Classe Update<Att>(Classe obj, params Expression<Func<Classe, Att>>[] expressions)
+        {
+            MemberExpression member;
+            string fieldName;
+            PropertyInfo property;
+
+            string query = "";
+            string IdField = GetIdField(this.TypeReflection);
+            Object IdValue = TypeReflection.GetProperty(IdField).GetValue(obj, null);
+            List<Object> parameters = new List<Object>();
+            parameters.Add(IdValue);
+
+            query = "UPDATE " + TypeReflection.Name + " SET ";
+            int cont = 1;
+
+            for (int i = 0; i < expressions.Length; i++)
+            {
+                member = expressions[i].Body as MemberExpression;
+                fieldName = member.Member.Name;
+                property = TypeReflection.GetProperty(fieldName);
+                if (!IsId(property))
+                {
+                    if (IsNotPrimitive(property.PropertyType))
+                    {
+                        query += property.Name + "Id=@" + cont.ToString() + ", ";
+                        parameters.Add(GetIdFK(property).GetValue(property.GetValue(obj, null), null));
+                    }
+                    else
+                    {
+                        query += property.Name + "=@" + cont.ToString() + ", ";
+                        parameters.Add(property.GetValue(obj, null));
+                    }
+                    cont++;
                 }
             }
 
             query = query.Substring(0, (query.Length - 2)) + " WHERE " + IdField + "=@0";
 
-            Object[] parameters = new Object[properties.Length];
-            parameters[0] = IdValue;
-
-            for (int i = 0; i < properties.Length; i++)
-            {
-                if (!isId(properties[i]))
-                {
-                    if (isNotPrimitive(properties[i].PropertyType))
-                    {
-                        PropertyInfo fkId = GetIdFK(properties[i]);
-                        Object fkObject = properties[i].GetValue(obj, null);
-                        parameters[i] = fkId.GetValue(fkObject, null);
-                    }
-                    else
-                    {
-                        parameters[i] = properties[i].GetValue(obj, null);
-                    }
-                }
-            }
-
-            executeQueryNoReturn(query, parameters);
+            executeQueryNoReturn(query, parameters.ToArray());
+            return Find(IdValue);
         }
 
         public Classe[] WhereEquals<Att>(Expression<Func<Att>> expression)
@@ -274,85 +290,50 @@ namespace Xandernate.Dao
 
             string query = "";
 
-            query = "SELECT * FROM " + typeReflection.Name + " WHERE " + fieldName + "=@0";
+            query = "SELECT * FROM " + TypeReflection.Name + " WHERE " + fieldName + "=@0";
 
-            List<string[]> fields = executeQuery(query, Value);
-            string[] fieldsDB = getFieldsNames(typeReflection.Name);
-
-            Classe[] objs = new Classe[fields.Count];
-            Object[] objsFields;
-
-            for (int i = 0; i < fields.Count; i++)
-            {
-                objsFields = GetFields(fields[i], typeReflection);
-                objs[i] = (Classe)FormatterServices.GetUninitializedObject(typeReflection);
-                for (int j = 0; j < fieldsDB.Length; j++)
-                {
-                    if (isNotPrimitive(objsFields[j].GetType()))
-                        typeReflection.GetProperty(fieldsDB[j].Replace("Id", "")).SetValue(objs[i], objsFields[j]);
-                    else
-                        typeReflection.GetProperty(fieldsDB[j]).SetValue(objs[i], objsFields[j]);
-                }
-            }
-
-            return objs;
+            return MapToObjects(executeQuery(query, Value)).OfType<Classe>().ToArray();
         }
 
         public Classe[] Where(Expression<Func<Classe, bool>> expression)
         {
             var body = expression.Body as BinaryExpression;
-            var validation = breakExpression(body);
+            var validation = BreakExpression(body);
 
-            string query = "SELECT * FROM " + typeReflection.Name + " WHERE " + validation;
+            string query = "SELECT * FROM " + TypeReflection.Name + " WHERE " + validation;
 
-            List<string[]> fields = executeQuery(query);
-            string[] fieldsDB = getFieldsNames(typeReflection.Name);
-
-            Classe[] objs = new Classe[fields.Count];
-            Object[] objsFields;
-
-            for (int i = 0; i < fields.Count; i++)
-            {
-                objsFields = GetFields(fields[i], typeReflection);
-                objs[i] = (Classe)FormatterServices.GetUninitializedObject(typeReflection);
-                for (int j = 0; j < fieldsDB.Length; j++)
-                {
-                    if (isNotPrimitive(objsFields[j].GetType()))
-                        typeReflection.GetProperty(fieldsDB[j].Replace("Id", "")).SetValue(objs[i], objsFields[j]);
-                    else
-                        typeReflection.GetProperty(fieldsDB[j]).SetValue(objs[i], objsFields[j]);
-                }
-            }
-
-            return objs;
+            return MapToObjects(executeQuery(query)).OfType<Classe>().ToArray();
         }
+
+
+
 
         private void Migrations()
         {
-            PropertyInfo[] properties = typeReflection.GetProperties();
-            columnMigrations(properties);
-            typeMigrations(properties);
+            PropertyInfo[] properties = TypeReflection.GetProperties();
+            ColumnMigrations(properties);
+            TypeMigrations(properties);
         }
 
-        private void createTable()
+        private void CreateTable()
         {
             string query = "";
             string valType = "";
 
-            PropertyInfo[] properties = typeReflection.GetProperties();
+            PropertyInfo[] properties = TypeReflection.GetProperties();
 
             query = "IF  NOT EXISTS (SELECT * FROM sys.objects " +
-                    "WHERE object_id = OBJECT_ID(N'[dbo].[" + typeReflection.Name + "]') AND type in (N'U')) " +
+                    "WHERE object_id = OBJECT_ID(N'[dbo].[" + TypeReflection.Name + "]') AND type in (N'U')) " +
                     "BEGIN " +
-                    "CREATE TABLE " + typeReflection.Name + " (";
+                    "CREATE TABLE " + TypeReflection.Name + " (";
 
             foreach (PropertyInfo property in properties)
             {
-                if (isId(property))
+                if (IsId(property))
                 {
                     valType = " int primary key not null IDENTITY(1,1), ";
                 }
-                else if (isNotPrimitive(property.PropertyType))
+                else if (IsNotPrimitive(property.PropertyType))
                 {
                     valType = "Id int FOREIGN KEY REFERENCES " + property.PropertyType.Name + "(" + GetIdFK(property).Name + ") ON DELETE CASCADE, ";
                 }
@@ -385,7 +366,7 @@ namespace Xandernate.Dao
             executeQuery(query);
         }
 
-        private static bool isNotPrimitive(Type property)
+        private static bool IsNotPrimitive(Type property)
         {
             return !property.IsPrimitive &&
                                 property != typeof(Decimal) &&
@@ -393,11 +374,13 @@ namespace Xandernate.Dao
                                 property != typeof(DateTime);
         }
 
-        private bool isId(PropertyInfo property)
+        private bool IsId(PropertyInfo property)
         {
             return property.Name.ToLower().Equals("id") ||
-                                property.Name.ToLower().Equals("id" + typeReflection.Name.ToLower()) ||
-                                property.Name.ToLower().Equals(typeReflection.Name.ToLower() + "id");
+                                property.Name.ToLower().Equals("id" + TypeReflection.Name.ToLower()) ||
+                                property.Name.ToLower().Equals(TypeReflection.Name.ToLower() + "id") ||
+                                property.Name.ToLower().Equals("id_" + TypeReflection.Name.ToLower()) ||
+                                property.Name.ToLower().Equals(TypeReflection.Name.ToLower() + "_id");
         }
 
         private string GetIdField(Type type)
@@ -405,7 +388,7 @@ namespace Xandernate.Dao
             PropertyInfo[] properties = type.GetProperties();
             foreach (PropertyInfo property in properties)
             {
-                if (isId(property))
+                if (IsId(property))
                 {
                     return property.Name;
                 }
@@ -418,12 +401,8 @@ namespace Xandernate.Dao
             Type fk = property.PropertyType;
             PropertyInfo[] fkAtt = fk.GetProperties();
             foreach (var item in fkAtt)
-            {
-                if (isId(item))
-                {
+                if (IsId(item))
                     return item;
-                }
-            }
             return null;
         }
 
@@ -435,23 +414,7 @@ namespace Xandernate.Dao
 
             query = "SELECT * FROM " + type.Name + " WHERE " + IdField + "=@0";
 
-            List<string[]> fields = executeQuery(query, id);
-            string[] fieldsDB = getFieldsNames(type.Name);
-
-            if (fields.Count != 0)
-            {
-                Object[] objsFields = GetFields(fields[0], type);
-                Object obj = (Object)FormatterServices.GetUninitializedObject(type);
-                for (int i = 0; i < fieldsDB.Length; i++)
-                {
-                    if (isNotPrimitive(objsFields[i].GetType()))
-                        type.GetProperty(fieldsDB[i].Replace("Id", "")).SetValue(obj, objsFields[i]);
-                    else
-                        type.GetProperty(fieldsDB[i]).SetValue(obj, objsFields[i]);
-                }
-                return obj;
-            }
-            return null;
+            return MapToObjects(executeQuery(query, id), type).FirstOrDefault();
         }
 
         private Object[] GetFields(string[] fields, Type type)
@@ -466,26 +429,10 @@ namespace Xandernate.Dao
                 {
                     if (property.Name.Equals(fieldsName[i]) || (property.Name + "Id").Equals(fieldsName[i]))
                     {
-                        if (isNotPrimitive(property.PropertyType))
+                        if (IsNotPrimitive(property.PropertyType))
                             objs[i] = FindFK(fields[i], property.PropertyType);
                         else
-                        {
-                            switch (property.PropertyType.ToString().Substring(7))
-                            {
-                                case "Int32":
-                                    objs[i] = (fields[i].Equals("")) ? default(Int32) : Convert.ToInt32(fields[i]);
-                                    break;
-                                case "Double":
-                                    objs[i] = (fields[i].Equals("")) ? default(Double) : Convert.ToDouble(fields[i]);
-                                    break;
-                                case "DateTime":
-                                    objs[i] = (fields[i].Equals("")) ? default(DateTime) : Convert.ToDateTime(fields[i]);
-                                    break;
-                                default:
-                                    objs[i] = fields[i];
-                                    break;
-                            }
-                        }
+                            objs[i] = ConvertToType(property, fields[i]);
                         break;
                     }
                 }
@@ -494,18 +441,29 @@ namespace Xandernate.Dao
             return objs;
         }
 
-        private string breakExpression(BinaryExpression body)
+        private Object ConvertToType(PropertyInfo property, string value)
+        {
+            switch (property.PropertyType.ToString().Substring(7))
+            {
+                case "Int32": return (value.Equals("")) ? default(Int32) : Convert.ToInt32(value);
+                case "Double": return (value.Equals("")) ? default(Double) : Convert.ToDouble(value);
+                case "DateTime": return (value.Equals("")) ? default(DateTime) : Convert.ToDateTime(value);
+            }
+            return value;
+        }
+
+        private string BreakExpression(BinaryExpression body)
         {
             string result = "";
             var left = body.Left;
             var leftB = (left as BinaryExpression);
             if (leftB == null)
             {
-                result += (left as MemberExpression).Member.Name + getOperatorNode(body.NodeType);
+                result += (left as MemberExpression).Member.Name + GetOperatorNode(body.NodeType);
             }
             else
             {
-                result += breakExpression(leftB) + getOperatorNode(body.NodeType) + " ";
+                result += BreakExpression(leftB) + GetOperatorNode(body.NodeType) + " ";
             }
             var right = body.Right;
             var rightB = (right as BinaryExpression);
@@ -515,12 +473,12 @@ namespace Xandernate.Dao
             }
             else
             {
-                result += breakExpression(rightB).Replace("'", "").Replace("\"", "'").Replace(",", ".");
+                result += BreakExpression(rightB).Replace("'", "").Replace("\"", "'").Replace(",", ".");
             }
             return result;
         }
 
-        private string getOperatorNode(ExpressionType nodo)
+        private string GetOperatorNode(ExpressionType nodo)
         {
             string expressionOperator = "";
             switch (nodo)
@@ -559,10 +517,10 @@ namespace Xandernate.Dao
             return expressionOperator;
         }
 
-        private void columnMigrations(PropertyInfo[] properties)
+        private void ColumnMigrations(PropertyInfo[] properties)
         {
             string[] propertiesName = properties.Select(p => p.Name).ToArray();
-            string[] fieldsDB = getFieldsNames(typeReflection.Name);
+            string[] fieldsDB = getFieldsNames(TypeReflection.Name);
             string query = "";
             string valType = "";
             string fk = "";
@@ -572,7 +530,7 @@ namespace Xandernate.Dao
                 fk = "";
                 if (!fieldsDB.Contains(property.Name) && !fieldsDB.Contains(property.Name + "Id"))
                 {
-                    if (isNotPrimitive(property.PropertyType))
+                    if (IsNotPrimitive(property.PropertyType))
                     {
                         fk = "Id";
                         valType = "int";
@@ -598,12 +556,12 @@ namespace Xandernate.Dao
                                 break;
                         }
                     }
-                    query = "ALTER TABLE " + typeReflection.Name + " ADD " + property.Name + fk + " " + valType;
+                    query = "ALTER TABLE " + TypeReflection.Name + " ADD " + property.Name + fk + " " + valType;
                     executeQuery(query);
 
                     if (!fk.Equals(""))
                     {
-                        query = "ALTER TABLE " + typeReflection.Name + " ADD FOREIGN KEY(" + property.Name + fk + ") REFERENCES " + property.PropertyType.Name + "(" + GetIdFK(property).Name + ")";
+                        query = "ALTER TABLE " + TypeReflection.Name + " ADD FOREIGN KEY(" + property.Name + fk + ") REFERENCES " + property.PropertyType.Name + "(" + GetIdFK(property).Name + ")";
                         executeQuery(query);
                     }
                 }
@@ -613,16 +571,16 @@ namespace Xandernate.Dao
             {
                 if (!propertiesName.Contains(column) && !propertiesName.Contains(column.Replace("Id", "")))
                 {
-                    query = "ALTER TABLE " + typeReflection.Name + " DROP COLUMN " + column;
+                    query = "ALTER TABLE " + TypeReflection.Name + " DROP COLUMN " + column;
                     executeQuery(query);
                 }
             }
         }
 
-        private void typeMigrations(PropertyInfo[] properties)
+        private void TypeMigrations(PropertyInfo[] properties)
         {
-            string[] typesDB = getFieldsTypes(typeReflection.Name);
-            string[] fieldsName = getFieldsNames(typeReflection.Name);
+            string[] typesDB = getFieldsTypes(TypeReflection.Name);
+            string[] fieldsName = getFieldsNames(TypeReflection.Name);
             string valType = "";
             string query = "";
 
@@ -632,7 +590,7 @@ namespace Xandernate.Dao
                 {
                     if (property.Name.Equals(fieldsName[i]) || (property.Name + "Id").Equals(fieldsName[i]))
                     {
-                        if (isNotPrimitive(property.PropertyType))
+                        if (IsNotPrimitive(property.PropertyType))
                         {
                             valType = "int";
                         }
@@ -659,7 +617,7 @@ namespace Xandernate.Dao
                         }
                         if (!typesDB[i].Equals(valType))
                         {
-                            query = "ALTER TABLE " + typeReflection.Name + " ALTER COLUMN " + property.Name + " " + valType;
+                            query = "ALTER TABLE " + TypeReflection.Name + " ALTER COLUMN " + property.Name + " " + valType;
                             executeQuery(query);
                         }
 
@@ -668,27 +626,127 @@ namespace Xandernate.Dao
             }
         }
 
-        private Classe Find(string fieldName, Object value)
+        private Object[] MapToObjects(List<string[]> fields, Type type = null)
         {
-            string query = "SELECT * FROM " + typeReflection.Name + " WHERE " + fieldName + "=@0";
+            type = type ?? TypeReflection;
+            string[] fieldsDB = getFieldsNames(type.Name);
 
-            List<string[]> fields = executeQuery(query, value);
-            string[] fieldsDB = getFieldsNames(typeReflection.Name);
+            Object[] objs = new Object[fields.Count];
+            Object[] objsFields;
 
-            if (fields.Count != 0)
+            for (int i = 0; i < fields.Count; i++)
             {
-                Object[] objsFields = GetFields(fields[0], typeReflection);
-                Classe obj = (Classe)FormatterServices.GetUninitializedObject(typeReflection);
-                for (int i = 0; i < fieldsDB.Length; i++)
+                objsFields = GetFields(fields[i], type);
+                objs[i] = FormatterServices.GetUninitializedObject(type);
+                for (int j = 0; j < fieldsDB.Length; j++)
                 {
-                    if (isNotPrimitive(objsFields[i].GetType()))
-                        typeReflection.GetProperty(fieldsDB[i].Replace("Id", "")).SetValue(obj, objsFields[i]);
-                    else
-                        typeReflection.GetProperty(fieldsDB[i]).SetValue(obj, objsFields[i]);
+                    if (IsNotPrimitive(objsFields[j].GetType()))
+                        fieldsDB[j] = fieldsDB[j].Replace("Id", "");
+                    type.GetProperty(fieldsDB[j]).SetValue(objs[i], objsFields[j]);
                 }
-                return obj;
             }
-            return default(Classe);
+
+            return objs;
+        }
+
+        private string CreateInsert(Classe obj, ref List<Object> parameters)
+        {
+            string query = "";
+            int parametersCount = parameters.Count;
+            int cont = 0;
+
+            PropertyInfo[] properties = TypeReflection.GetProperties();
+            PropertyInfo _property;
+
+            query = "INSERT INTO " + TypeReflection.Name + " (";
+
+            foreach (PropertyInfo property in properties)
+            {
+                if (!IsId(property))
+                {
+                    if (IsNotPrimitive(property.PropertyType))
+                    {
+                        query += property.Name + "Id, ";
+                    }
+                    else
+                    {
+                        query += property.Name + ", ";
+                    }
+                }
+            }
+
+            query = query.Substring(0, (query.Length - 2)) + ")";
+            query += " VALUES (";
+
+            for (int i = parametersCount; i < (parametersCount + properties.Length); i++)
+            {
+                _property = properties[i - parametersCount];
+                if (!IsId(_property))
+                {
+                    if (IsNotPrimitive(_property.PropertyType))
+                        parameters.Add(GetIdFK(_property).GetValue(_property.GetValue(obj, null), null));
+                    else
+                        parameters.Add(_property.GetValue(obj, null) ?? "");
+                    query += "@" + cont.ToString() + ", ";
+                    cont++;
+                }
+            }
+
+            return query.Substring(0, (query.Length - 2)) + ");";
+        }
+
+        public void InsertOrUpdateSQL(Classe obj, Expression<Func<Classe, object>> IdentifierExpression = null)
+        {
+            PropertyInfo[] properties = TypeReflection.GetProperties();
+            List<Object> parameters = new List<Object>();
+            object propValue = "";
+            string _where = "";
+            string _update = "";
+            string _params = "";
+            string _values = "";
+            string command = "if exists (select * from [dbo].[_tabela] where _where)\n" +
+                             " begin \n" +
+                             "     update [dbo].[_tabela] set _update \n" +
+                             "     where _where \n" +
+                             " end \n" +
+                             " else \n" +
+                             " begin \n" +
+                             "   insert into [dbo].[_tabela] (_params)\n" +
+                             "   values (_values)\n" +
+                             " end";
+
+            if (IdentifierExpression != null)
+            {
+                var expression = IdentifierExpression.Body as NewExpression;
+                foreach (var member in expression.Members)
+                {
+                    propValue = TypeReflection.GetProperty(member.Name).GetValue(obj, null);
+                    _where += member.Name + ((propValue == null) ? " is null" : " = @" + member.Name.ToLower()) + " and ";
+                }
+                _where = _where.Substring(0, _where.Length - 5);
+            }
+            else
+                _where = "Id = @id";
+
+
+            foreach (var prop in properties)
+            {
+                propValue = TypeReflection.GetProperty(prop.Name).GetValue(obj, null);
+                if (propValue != null && !prop.Name.Equals("Id") && !prop.GetGetMethod().IsVirtual)
+                {
+                    parameters.Add(propValue);
+                    _update += prop.Name + " = @" + prop.Name.ToLower() + ", ";
+                    _params += "[" + prop.Name + "], ";
+                    _values += "@" + prop.Name.ToLower() + ", ";
+                }
+            }
+
+            executeQueryNoReturn(command.Replace("_where", _where)
+                              .Replace("_tabela", TypeReflection.Name)
+                              .Replace("_update", _update.Substring(0, _update.Length - 2))
+                              .Replace("_params", _params.Substring(0, _params.Length - 2))
+                              .Replace("_values", _values.Substring(0, _values.Length - 2)),
+                              parameters.ToArray());
         }
     }
 }

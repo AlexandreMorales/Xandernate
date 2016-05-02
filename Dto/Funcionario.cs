@@ -11,7 +11,5 @@ namespace Xandernate.Dto
         public int Id { get; set; }
         public double Salario { get; set; }
         public Pessoa pessoa { get; set; }
-
-        public Funcionario() { }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TesteXandernate.Dto
+namespace Xandernate.Dto
 {
     class Pessoa
     {
@@ -14,8 +14,7 @@ namespace TesteXandernate.Dto
         public string Nome { get; set; }
         public double Peso { get; set; }
         public Endereco endereco { get; set; }
-
-        public Pessoa() { }
+        
     }
 
     class Endereco
@@ -28,6 +27,5 @@ namespace TesteXandernate.Dto
         public string Estado { get; set; }
         public string Cep { get; set; }
 
-        public Endereco() { }
     }
 }

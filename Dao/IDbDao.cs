@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,7 +9,6 @@ namespace Xandernate.Dao
 {
     interface IDbDao<Classe>
     {
-
         /// <summary>
         /// Adds an object in the database.
         /// </summary>
@@ -21,9 +19,17 @@ namespace Xandernate.Dao
         /// <summary>
         /// Finds an object in the database by its Id.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">The id of the object to be found.</param>
         /// <returns>Null if it dont find any, or the object found.</returns>
         Classe Find(Object id);
+
+        /// <summary>
+        /// Finds an object in the database by the field expressed in the params.
+        /// </summary>
+        /// <param name="expression">Lambda showing the field of the object.</param>
+        /// <param name="value">Value of the field to find the object.</param>
+        /// <returns>Null if it dont find any, or the object found.</returns>
+        Classe Find<Att>(Expression<Func<Classe, Att>> expression, Att value);
 
         /// <summary>
         /// Finds all the objects in the database.
@@ -80,7 +86,16 @@ namespace Xandernate.Dao
         /// Updates an object of the database.
         /// </summary>
         /// <param name="obj">The object to be updated.</param>
-        void Update(Classe obj);
+        /// <returns>The same updated object.</returns>
+        Classe Update(Classe obj);
+
+        /// <summary>
+        /// Updates an object of the database, updating only the fields expressed in the params.
+        /// </summary>
+        /// <param name="obj">The object to be updated.</param>
+        /// <param name="expression">The array of lambdas showing the fields to be updated.</param>
+        /// <returns>The same updated object.</returns>
+        Classe Update<Att>(Classe obj, params Expression<Func<Classe, Att>>[] expressions);
 
         /// <summary>
         /// Finds an array of objects in the database if it has the same attribute expressed in the params equals.
