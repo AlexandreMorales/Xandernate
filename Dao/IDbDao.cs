@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Xandernate.Dao
 {
-    interface IDbDao<Classe>
+    public interface IDbDao<Classe>
     {
         /// <summary>
         /// Adds an object in the database.
@@ -95,7 +95,7 @@ namespace Xandernate.Dao
         /// <param name="obj">The object to be updated.</param>
         /// <param name="expression">The array of lambdas showing the fields to be updated.</param>
         /// <returns>The same updated object.</returns>
-        Classe Update<Att>(Classe obj, params Expression<Func<Classe, Att>>[] expressions);
+        Classe Update(Classe obj, Expression<Func<Classe, object>> expressions);
 
         /// <summary>
         /// Finds an array of objects in the database if it has the same attribute expressed in the params equals.

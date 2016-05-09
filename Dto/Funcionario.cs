@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Xandernate.Dto
 {
-    class Funcionario
+    public class Funcionario
     {
         public int Id { get; set; }
         public double Salario { get; set; }
