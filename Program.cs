@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xandernate.Dao;
-using Xandernate.Dto;
+using XandernateShowcase.Dao;
+using XandernateShowcase.Models;
 
-namespace Xandernate
+namespace XandernateShowcase
 {
     class Program
     {
         static void Main(string[] args)
         {
+            DBFirst.Init();
+
             Contexto db = new Contexto();
 
             Endereco e1 = new Endereco() { Cep = "92200-270", Estado = "RS", Cidade = "Canoas", Rua = "Paes Lemes", Numero = "720", Complemento = "c/48" };
@@ -32,47 +35,34 @@ namespace Xandernate
             Funcionario f5 = new Funcionario { pessoa = p5, Salario = 200.00 };
             Funcionario f6 = new Funcionario { pessoa = p6, Salario = 1200.00 };
 
-            e1 = db.Enderecos.Add(e1);
-            e2 = db.Enderecos.Add(e2);
-            e3 = db.Enderecos.Add(e3);
+            db.Funcionarios.AddOrUpdate(f => f.Salario, f1, f2, f3, f4, f5, f6);
 
-            p1 = db.Pessoas.Add(p1);
-            p2 = db.Pessoas.Add(p2);
-            p3 = db.Pessoas.Add(p3);
-            p4 = db.Pessoas.Add(p4);
-            p5 = db.Pessoas.Add(p5);
-            p6 = db.Pessoas.Add(p6);
-
-            f1 = db.Funcionarios.Add(f1);
-            f2 = db.Funcionarios.Add(f2);
-            f3 = db.Funcionarios.Add(f3);
-            f4 = db.Funcionarios.Add(f4);
-            f5 = db.Funcionarios.Add(f5);
-            f6 = db.Funcionarios.Add(f6);
-
+            List<Funcionario> funcionarios = db.Funcionarios.FindAll();
             p1 = db.Pessoas.Find(1);
+            p1 = db.Pessoas.Find(p => p.Nome, "Joseane");
 
-            Pessoa[] pessoas = db.Pessoas.FindAll();
+            p3.Altura = 2;
+            db.Pessoas.AddOrUpdate(p3);
+            db.Pessoas.AddOrUpdate(x => x.Nome, new Pessoa { endereco = e1, Altura = 2, Idade = 200, Nome = "Joseane", Peso = 56 });
 
-            //db.Pessoas.Remove(p3);
-            //db.Pessoas.Remove(4);
-            //db.Pessoas.Remove(p => p.Altura == 1.67);
-            //db.Pessoas.Remove(p => p.Idade, 20);
-
-            //db.Pessoas.AddRange(pessoas);
-
-            //db.Pessoas.AddOrUpdate(p6);
-            //db.Pessoas.AddOrUpdate(p => p.Altura, p5);
+            List<Pessoa> pessoas = db.Pessoas.FindAll();
 
             p1.Idade = 25;
             p1.Peso = 35;
-            p1 = db.Pessoas.Update(p1, p => new { p.Idade });
+            db.Pessoas.Update(p => p.Idade, p1);
             p1.Peso = 35;
-            p1 = db.Pessoas.Update(p1);
+            db.Pessoas.Update(p1);
 
             pessoas = db.Pessoas.WhereEquals(() => p1.Nome);
 
             pessoas = db.Pessoas.Where(p => p.Nome != "Joseane" && p.Altura > 1 && p.Peso > 1);
+
+            db.Pessoas.Remove(p3);
+            db.Pessoas.Remove(4);
+            db.Pessoas.Remove(p => p.Altura == 1.67);
+            db.Pessoas.Remove(p => p.Idade, 20);
+
+            pessoas = db.Pessoas.FindAll();
         }
     }
 }

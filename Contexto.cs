@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xandernate.Dto;
+using System.Xml;
+using XandernateShowcase.Models;
 
-namespace Xandernate.Dao
+using Xandernate.Dao;
+
+
+namespace XandernateShowcase.Dao
 {
     public class Contexto
     {
-        /*
-         * ORDER 
-         */
-
         public Contexto()
         {
-            Enderecos = new DbDao<Endereco>();
-            Pessoas = new DbDao<Pessoa>();
             Funcionarios = new DbDao<Funcionario>();
+            Pessoas = new DbDao<Pessoa>();
+            Enderecos = new DbDao<Endereco>();
         }
         public IDbDao<Endereco> Enderecos;
         public IDbDao<Pessoa> Pessoas;
