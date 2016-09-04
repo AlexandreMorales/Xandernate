@@ -1,0 +1,15 @@
+/packages
+/Xandernate/bin
+/Xandernate/obj
+/Xandernate/Properties
+/XandernateShowcase/bin
+/XandernateShowcase/obj
+/XandernateShowcase/Properties
+/XandernateShowcase/packages.config
+*.suo
+*.sln
+*.csproj
+*.mdf
+*.ldf
+*.zip
+*.user
