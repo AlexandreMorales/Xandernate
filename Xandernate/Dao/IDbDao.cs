@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Xandernate.Dao
+namespace Xandernate.DAO
 {
-    public interface IDbDao<Classe>
+    public interface IDbDao<TClass>
     {
         /// <summary>
         /// Adds an array of objects in the database.
         /// </summary>
         /// <param name="Objs">The array of objects to be added.</param>
-        void Add(params Classe[] Objs);
+        void Add(params TClass[] Objs);
 
 
         /// <summary>
         /// Adds or updates an array of objects, verification made by the the id.
         /// </summary>
         /// <param name="Objs">The objects to be added or updated.</param>
-        void AddOrUpdate(params Classe[] Objs);
+        void AddOrUpdate(params TClass[] Objs);
 
         /// <summary>
         /// Adds or updates an array of objects, verification made by the field expressed in the params.
@@ -28,14 +25,14 @@ namespace Xandernate.Dao
         /// <param name="Objs">The objects to be added or updated.</param>
         /// <param name="IdentifierExpression">Lambda showing the field of the object to verify. If not specified the field will be it's Id</param>
         /// <returns>The same added object but with its Id.</returns>
-        void AddOrUpdate(Expression<Func<Classe, object>> IdentifierExpression, params Classe[] Objs);
+        void AddOrUpdate(Expression<Func<TClass, object>> IdentifierExpression, params TClass[] Objs);
 
 
         /// <summary>
         /// Update the array of objects in the database.
         /// </summary>
         /// <param name="Objs">The array of objects to be updated.</param>
-        void Update(params Classe[] Objs);
+        void Update(params TClass[] Objs);
 
         /// <summary>
         /// Updates an object of the database, updating only the fields expressed in the params or by its Id.
@@ -43,8 +40,8 @@ namespace Xandernate.Dao
         /// <param name="Objs">The array of objects to be updated.</param>
         /// <param name="IdentifierExpression">The array of lambdas showing the fields to be updated.</param>
         /// <returns>The same updated object.</returns>
-        void Update(Expression<Func<Classe, object>> IdentifierExpression, params Classe[] Objs);
-        
+        void Update(Expression<Func<TClass, object>> IdentifierExpression, params TClass[] Objs);
+
 
         /// <summary>
         /// Finds an object in the database by its Id.
@@ -52,7 +49,7 @@ namespace Xandernate.Dao
         /// <typeparam name="Att">The Id field of the object.</typeparam>
         /// <param name="Id">The id of the object to be found.</param>
         /// <returns>Null if it dont find any, or the object found.</returns>
-        Classe Find<Att>(Att Id);
+        TClass Find<Att>(Att Id);
 
         /// <summary>
         /// Finds an object in the database by the field expressed in the params.
@@ -61,13 +58,13 @@ namespace Xandernate.Dao
         /// <param name="IdentifierExpression">Lambda showing the field of the object.</param>
         /// <param name="Value">Value of the field to find the object.</param>
         /// <returns>Null if it dont find any, or the object found.</returns>
-        Classe Find<Att>(Expression<Func<Classe, Att>> IdentifierExpression, Att Value);
+        TClass Find<Att>(Expression<Func<TClass, Att>> IdentifierExpression, Att Value);
 
         /// <summary>
         /// Finds all the objects in the database.
         /// </summary>
         /// <returns>Null if it dont find any, or  all the objects in the database.</returns>
-        List<Classe> FindAll();
+        List<TClass> FindAll();
 
         /// <summary>
         /// Finds an array of objects in the database if it has the same attribute expressed in the params equals.
@@ -75,21 +72,21 @@ namespace Xandernate.Dao
         /// <typeparam name="Att">The field of the object.</typeparam>
         /// <param name="IdentifierExpression">Lambda showing the field of the object.</param>
         /// <returns>Null if it dont find any, or an array objects found.</returns>
-        List<Classe> WhereEquals<Att>(Expression<Func<Att>> IdentifierExpression);
+        List<TClass> WhereEquals<Att>(Expression<Func<Att>> IdentifierExpression);
 
         /// <summary>
         /// Finds an array of objects from the database by the expression expressed in the params.
         /// </summary>
         /// <param name="IdentifierExpression">Lambda expressing the expression to look in the bank.</param>
         /// <returns>Null if it dont find any, or an array objects found.</returns>
-        List<Classe> Where(Expression<Func<Classe, bool>> IdentifierExpression);
+        List<TClass> Where(Expression<Func<TClass, bool>> IdentifierExpression);
 
 
         /// <summary>
         /// Removes the object from the database.
         /// </summary>
         /// <param name="Obj">The object to be removed.</param>
-        void Remove(Classe Obj);
+        void Remove(TClass Obj);
 
         /// <summary>
         /// Removes the object from the database by its Id.
@@ -102,7 +99,7 @@ namespace Xandernate.Dao
         /// Removes the object from the database by the expression expressed in the params.
         /// </summary>
         /// <param name="IdentifierExpression">Lambda expressing which objects to remove.</param>
-        void Remove(Expression<Func<Classe, bool>> IdentifierExpression);
+        void Remove(Expression<Func<TClass, bool>> IdentifierExpression);
 
         /// <summary>
         /// Removes the object from the database by the field expressed in the params.
@@ -110,6 +107,6 @@ namespace Xandernate.Dao
         /// <typeparam name="Att">The field of the object.</typeparam>
         /// <param name="IdentifierExpression">Lambda showing the field of the object.</param>
         /// <param name="Value">Value of the field to remove the object.</param>
-        void Remove<Att>(Expression<Func<Classe, Att>> IdentifierExpression, Att Value);
+        void Remove<Att>(Expression<Func<TClass, Att>> IdentifierExpression, Att Value);
     }
 }

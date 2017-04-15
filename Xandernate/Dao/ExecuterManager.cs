@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 using Xandernate.Utils;
+using Xandernate.Utils.Extensions;
 
-namespace Xandernate.Dao
+namespace Xandernate.DAO
 {
     public class ExecuterManager
     {
@@ -31,7 +26,7 @@ namespace Xandernate.Dao
             return Instance;
         }
 
-        public List<Classe> ExecuteQuery<Classe>(string sql, object[] parameters = null, Func<IDataReader, Classe> IdentifierExpression = null)
+        public List<TClass> ExecuteQuery<TClass>(string sql, object[] parameters = null, Func<IDataReader, TClass> IdentifierExpression = null)
         {
             parameters = parameters ?? new object[0];
             sql = sql.Replace("\n", Environment.NewLine);
@@ -41,21 +36,21 @@ namespace Xandernate.Dao
                 {
                     using (IDbCommand command = factory.getCommand(sql, parameters))
                     {
-                        writeTxt(command.CommandText);
+                        Logger.WriteLog(command.CommandText);
                         using (IDataReader reader = command.ExecuteReader())
                         {
-                            List<Classe> list = new List<Classe>();
-                            Type type = typeof(Classe);
-                            Classe obj;
+                            List<TClass> list = new List<TClass>();
+                            Type type = typeof(TClass);
+                            TClass obj;
                             do
                                 while (reader.Read())
                                 {
                                     if (IdentifierExpression != null)
                                         obj = IdentifierExpression.Invoke(reader);
                                     else if (type.IsNotPrimitive())
-                                        obj = Mapper.MapToObjects<Classe>(reader);
+                                        obj = Mapper.MapToObjects<TClass>(reader);
                                     else
-                                        obj = (Classe)Mapper.StringToProp(reader[0], type);
+                                        obj = (TClass)Mapper.StringToProp(reader[0], type);
 
                                     list.Add(obj);
                                 }
@@ -67,7 +62,7 @@ namespace Xandernate.Dao
                 }
                 catch (Exception e)
                 {
-                    writeTxt(e.Message);
+                    Logger.WriteLog(e.Message);
                     throw e;
                 }
                 finally
@@ -86,32 +81,19 @@ namespace Xandernate.Dao
                 {
                     using (IDbCommand command = factory.getCommand(sql, parameters))
                     {
-                        writeTxt(command.CommandText);
+                        Logger.WriteLog(command.CommandText);
                         command.ExecuteNonQuery();
                     }
                 }
                 catch (Exception e)
                 {
-                    writeTxt(e.Message);
+                    Logger.WriteLog(e.Message);
                     throw e;
                 }
                 finally
                 {
                     conn.Close();
                 }
-            }
-        }
-
-        private void writeTxt(string query)
-        {
-            string dirLog = ConfigurationManager.AppSettings["DirLogs"];
-            if (dirLog != null)
-                dirLog += @"\";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(dirLog + @"XandernateLog.txt", true))
-            {
-                file.WriteLine(query + Environment.NewLine +
-                    "-----------------------------------------------------------------------------------------------------" +
-                    Environment.NewLine);
             }
         }
     }

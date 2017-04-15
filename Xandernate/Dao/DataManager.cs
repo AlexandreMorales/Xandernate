@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Configuration;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using System.Data.SqlClient;
-using MySql.Data.MySqlClient;
+using System.Linq;
 
-namespace Xandernate.Dao
+namespace Xandernate.DAO
 {
     public class DataManager
     {
