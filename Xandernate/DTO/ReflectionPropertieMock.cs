@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 
+using Xandernate.Utils.Extensions;
+
 namespace Xandernate.DTO
 {
     public class ReflectionPropertieMock
@@ -20,8 +22,6 @@ namespace Xandernate.DTO
         }
 
         public object GetValue(object obj)
-        {
-            return PropertyMock.GetValue(obj);
-        }
+            => PropertyMock.GetValue(obj);
     }
 }

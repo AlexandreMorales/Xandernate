@@ -12,6 +12,7 @@ using Xandernate.Utils.Extensions;
 namespace Xandernate.DAO
 {
     public class DbDao<TClass> : IDbDao<TClass>
+        where TClass : new()
     {
         private ExecuterManager Executer;
         private Type TypeReflection;
@@ -26,7 +27,7 @@ namespace Xandernate.DAO
         private void Init()
         {
             string createTable = QueryBuilder.GenerateCreate(TypeReflection);
-            if (DataManager.Provider.Equals("ODP.NET", StringComparison.InvariantCultureIgnoreCase))
+            if (DataManager.Provider.Equals("ODP.NET", StringComparison.OrdinalIgnoreCase))
                 createTable = string.Format("BEGIN \n{0}\n END;", createTable);
 
             Executer.ExecuteQueryNoReturn(createTable);

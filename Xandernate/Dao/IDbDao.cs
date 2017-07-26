@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 namespace Xandernate.DAO
 {
     public interface IDbDao<TClass>
+        where TClass : new()
     {
         /// <summary>
         /// Adds an array of objects in the database.

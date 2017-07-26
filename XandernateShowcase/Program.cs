@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using XandernateShowcase.Dao;
+
+using XandernateShowcase.DAO;
 using XandernateShowcase.Models;
 
 namespace XandernateShowcase

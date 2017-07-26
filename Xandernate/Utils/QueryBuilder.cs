@@ -14,6 +14,7 @@ namespace Xandernate.Utils
         {
             GenericAction(Objs, method, null);
         }
+
         public static void GenericAction<TClass>(TClass[] Objs, GenerateScriptsEnum method, PropertyInfo[] properties)
         {
             Type type = typeof(TClass);
@@ -81,7 +82,7 @@ namespace Xandernate.Utils
                 else if (property.IsForeignKey())
                 {
                     beforeCreate += GenerateCreate(property.PropertyType);
-                    valType = "Id int " + (DataManager.Provider.Equals("ODP.NET", StringComparison.InvariantCultureIgnoreCase) ? "" : "FOREIGN KEY")
+                    valType = "Id int " + (DataManager.Provider.Equals("ODP.NET", StringComparison.OrdinalIgnoreCase) ? "" : "FOREIGN KEY")
                         + " REFERENCES " + property.PropertyType.Name + "(" + property.PropertyType.GetIdField().Name + ") ON DELETE CASCADE, ";
                 }
                 else
@@ -194,7 +195,7 @@ namespace Xandernate.Utils
                     }
                     values += "@" + (parameters.Count - 1).ToString() + ", ";
                 }
-                else if (DataManager.Provider.Equals("ODP.NET", StringComparison.InvariantCultureIgnoreCase))
+                else if (DataManager.Provider.Equals("ODP.NET", StringComparison.OrdinalIgnoreCase))
                 {
                     query += property.Name + ", ";
                     values += "seq_" + type.Name + "_" + property.Name + ".nextval, ";
@@ -223,7 +224,7 @@ namespace Xandernate.Utils
             int idIndex = parameters.Count;
             string query = "IF NOT EXISTS (" + GenerateSelectSimple(type.GetIdField().Name, type, cont: idIndex).SubstringLast() + ")\n" +
                            "  BEGIN \n" +
-                            (DataManager.Provider.Equals("SQLCLIENT", StringComparison.InvariantCultureIgnoreCase) ?
+                            (DataManager.Provider.Equals("SQLCLIENT", StringComparison.OrdinalIgnoreCase) ?
                            "    SET IDENTITY_INSERT " + type.Name + " ON \n" : "") +
                            "    INSERT INTO " + type.Name + " (";
             parameters.Add(idValue);
@@ -255,7 +256,7 @@ namespace Xandernate.Utils
             }
 
             return beforeInsert + query.SubstringLast() + ") VALUES (" + values.SubstringLast() + ");\n" +
-                         (DataManager.Provider.Equals("SQLCLIENT", StringComparison.InvariantCultureIgnoreCase) ?
+                         (DataManager.Provider.Equals("SQLCLIENT", StringComparison.OrdinalIgnoreCase) ?
                          "    SET IDENTITY_INSERT " + type.Name + " OFF \n" : "") +
                          "  END\n";
         }
@@ -305,6 +306,7 @@ namespace Xandernate.Utils
             return query.SubstringLast() + " \n" +
                     "FROM " + type.Name + " \n" + joins + where + ";\n";
         }
+
         private static string GenerateSelectFields(Type type, ref string query)
         {
             Type fk;
@@ -328,10 +330,12 @@ namespace Xandernate.Utils
         {
             return GenerateGenericSimple("DELETE", fieldName, type, where, cont);
         }
+
         private static string GenerateSelectSimple(string fieldName, Type type, string where = null, int cont = 0)
         {
             return GenerateGenericSimple("SELECT *", fieldName, type, where, cont);
         }
+
         private static string GenerateGenericSimple(string action, string fieldName, Type type, string where, int cont)
         {
             return action + " FROM " + type.Name + (where ?? (" WHERE " + fieldName + "=@" + cont)) + ";\n";

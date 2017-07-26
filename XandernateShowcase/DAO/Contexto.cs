@@ -1,7 +1,7 @@
 ﻿using Xandernate.DAO;
 using XandernateShowcase.Models;
 
-namespace XandernateShowcase.Dao
+namespace XandernateShowcase.DAO
 {
     public class Contexto
     {

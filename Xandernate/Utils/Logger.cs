@@ -1,16 +1,18 @@
 ﻿using System;
-using System.Configuration;
+using System.IO;
 
 namespace Xandernate.Utils
 {
     public static class Logger
     {
+        public static string LoggerDirectory { get; set; }
+
         public static void WriteLog(string query)
         {
-            string dirLog = ConfigurationManager.AppSettings["DirLogs"];
-            if (dirLog != null)
-                dirLog += @"\";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(dirLog + @"XandernateLog.txt", true))
+            if (LoggerDirectory != null)
+                LoggerDirectory += @"\";
+
+            using (StreamWriter file = File.CreateText(LoggerDirectory + @"XandernateLog.txt"))
             {
                 file.WriteLine(query + Environment.NewLine +
                     "-----------------------------------------------------------------------------------------------------" +

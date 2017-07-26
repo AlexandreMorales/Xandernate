@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
-
 using Xandernate.Utils;
 using Xandernate.Utils.Extensions;
 
@@ -27,6 +25,7 @@ namespace Xandernate.DAO
         }
 
         public List<TClass> ExecuteQuery<TClass>(string sql, object[] parameters = null, Func<IDataReader, TClass> IdentifierExpression = null)
+            where TClass : new()
         {
             parameters = parameters ?? new object[0];
             sql = sql.Replace("\n", Environment.NewLine);

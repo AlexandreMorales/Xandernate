@@ -8,8 +8,8 @@ namespace Xandernate.Utils.Extensions
     {
         public static bool IsNotPrimitive(this Type type)
         {
-            return !type.IsPrimitive &&
-                !type.IsEnum &&
+            return !type.IsArray &&
+                type != typeof(Enum) &&
                 type != typeof(string) &&
                 type != typeof(byte) &&
                 type != typeof(int) &&

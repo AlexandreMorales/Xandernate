@@ -27,7 +27,7 @@ namespace Xandernate.Utils.DBFirst
                          "ON p.TABLE_NAME = t.TABLE_NAME \n" +
                          "WHERE t.TABLE_TYPE = 'BASE TABLE'; ";
 
-            List<INFORMATION_SCHEMA_COLUMNS> tables = executer.ExecuteQuery<INFORMATION_SCHEMA_COLUMNS>(sql, null, x => new INFORMATION_SCHEMA_COLUMNS
+            List<INFORMATION_SCHEMA_COLUMNS> tables = executer.ExecuteQuery(sql, null, x => new INFORMATION_SCHEMA_COLUMNS
             {
                 TableName = x.GetString(0),
                 Name = x.GetString(1),
@@ -35,7 +35,9 @@ namespace Xandernate.Utils.DBFirst
                 Type = Mapper.StringDBToType(x.GetString(2))
             });
 
-            tables.GroupBy(x => x.TableName).Select(x => x.ToList()).ToList().ForEach(x => typeBuilder.CreatClass(x));
+            tables
+                .GroupBy(x => x.TableName)
+                .Select(x => x.ToList());
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-namespace Xandernate.Utils
+﻿namespace Xandernate.Utils
 {
     public enum GenerateScriptsEnum
     {

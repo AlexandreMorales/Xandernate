@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Reflection;
-using System.Runtime.Serialization;
 
 using Xandernate.Utils.Extensions;
 
@@ -10,20 +9,20 @@ namespace Xandernate.Utils
     public static class Mapper
     {
         public static TClass MapToObjects<TClass>(IDataRecord FieldsObj)
-        {
-            return (TClass)MapToObjects(FieldsObj, typeof(TClass));
-        }
-
-        private static object MapToObjects(IDataRecord FieldsObj, Type type)
+            where TClass : new()
         {
             object value;
+            Type type = typeof(TClass);
             PropertyInfo[] properties = type.GetProperties();
-            object obj = FormatterServices.GetUninitializedObject(type);
+            TClass obj = new TClass();
 
             foreach (PropertyInfo property in properties)
             {
                 if (property.IsForeignKey())
-                    value = MapToObjects(FieldsObj, property.PropertyType);
+                    value = typeof(Mapper)
+                                .GetMethod("MapToObjects")
+                                .MakeGenericMethod(property.PropertyType)
+                                .Invoke(null, new object[] { FieldsObj });
                 else
                     value = StringToProp(FieldsObj[type.Name + "_" + property.Name], property.PropertyType);
 

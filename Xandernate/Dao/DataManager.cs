@@ -1,6 +1,4 @@
-﻿using MySql.Data.MySqlClient;
-using System;
-using System.Configuration;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -17,13 +15,9 @@ namespace Xandernate.DAO
 
         private DataManager(string _connString, string _provider)
         {
-            ConnectionStringSettings connSettings = ConfigurationManager.ConnectionStrings["DefaultConnection"];
+            connectionString = _connString;
 
-            if (_connString == null && connSettings == null)
-                throw new Exception("Adicione uma ConnectionString no web/App.config ou mande uma por parametro");
-            connectionString = _connString ?? connSettings.ConnectionString;
-
-            provider = _provider ?? ((connSettings == null) ? "System.Data.SqlClient" : (connSettings.ProviderName ?? "System.Data.SqlClient"));
+            provider = _provider ?? "System.Data.SqlClient";
             provider = provider.Replace("System.Data.", "");
         }
 
@@ -40,10 +34,8 @@ namespace Xandernate.DAO
             if (conn == null)
                 switch (Provider.ToLower())
                 {
-                    case "odp.net": //conn = new OracleConnection(); break;
-                    case "mysql": conn = new MySqlConnection(); break;
-                    default:
-                    case "sqlclient": conn = new SqlConnection(); break;
+                    case "sqlclient":
+                    default: conn = new SqlConnection(); break;
                 }
 
             if (conn.State != ConnectionState.Open)
@@ -61,10 +53,8 @@ namespace Xandernate.DAO
 
             switch (Provider.ToLower())
             {
-                case "odp.net": //comm = new OracleCommand(query.Replace('@', ':'), (OracleConnection)conn); break;
-                case "mysql": comm = new MySqlCommand(query, (MySqlConnection)conn); break;
-                default:
-                case "sqlclient": comm = new SqlCommand(query, (SqlConnection)conn); break;
+                case "sqlclient":
+                default: comm = new SqlCommand(query, (SqlConnection)conn); break;
             }
 
             return (parameters.Length == 0) ? comm : AddParameters(comm, parameters);
@@ -73,21 +63,17 @@ namespace Xandernate.DAO
         private IDbCommand AddParameters(IDbCommand command, object[] parameters)
         {
             IDbDataParameter data;
-            Type ParameterType = null;
-            switch (Provider.ToLower())
-            {
-                case "odp.net": //ParameterType = typeof(OracleParameter); break;
-                case "mysql": ParameterType = typeof(MySqlParameter); break;
-                default:
-                case "sqlclient": ParameterType = typeof(SqlParameter); break;
-            }
             for (int i = 0; i < parameters.Length; i++)
             {
-                data = (parameters[i].GetType() == typeof(DateTime)) ?
-                    (IDbDataParameter)ParameterType.GetConstructor(new[] { typeof(string), typeof(SqlDbType) })
-                        .Invoke(new object[] { i.ToString(), SqlDbType.DateTime }) :
-                    (IDbDataParameter)ParameterType.GetConstructor(new[] { typeof(string), typeof(object) })
-                        .Invoke(new object[] { i.ToString(), parameters[i] });
+                switch (Provider.ToLower())
+                {
+                    case "sqlclient":
+                    default:
+                        data = (parameters[i].GetType() == typeof(DateTime)) ?
+                                new SqlParameter(i.ToString(), SqlDbType.DateTime) :
+                                new SqlParameter(i.ToString(), parameters[i]);
+                        break;
+                }
 
                 data.Value = parameters[i];
                 command.Parameters.Add(data);
@@ -98,7 +84,7 @@ namespace Xandernate.DAO
 
         public static string GetDatabase()
         {
-            return connectionString.Split(';').FirstOrDefault(x => x.Split('=')[0].Equals("Initial Catalog", StringComparison.InvariantCultureIgnoreCase)).Split('=')[1];
+            return connectionString.Split(';').FirstOrDefault(x => x.Split('=')[0].Equals("Initial Catalog", StringComparison.OrdinalIgnoreCase)).Split('=')[1];
         }
     }
 }
