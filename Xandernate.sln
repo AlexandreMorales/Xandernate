@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XandernateShowcase", "XandernateShowcase\XandernateShowcase.csproj", "{9817F0E7-137C-43FB-9203-E4DD12296C21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xandernate", "Xandernate\Xandernate.csproj", "{CAF9B32F-F08F-444D-85BB-4BE941C1D876}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9817F0E7-137C-43FB-9203-E4DD12296C21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9817F0E7-137C-43FB-9203-E4DD12296C21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9817F0E7-137C-43FB-9203-E4DD12296C21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9817F0E7-137C-43FB-9203-E4DD12296C21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAF9B32F-F08F-444D-85BB-4BE941C1D876}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAF9B32F-F08F-444D-85BB-4BE941C1D876}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAF9B32F-F08F-444D-85BB-4BE941C1D876}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAF9B32F-F08F-444D-85BB-4BE941C1D876}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
