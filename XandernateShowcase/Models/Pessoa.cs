@@ -11,6 +11,6 @@ namespace XandernateShowcase.Models
         public string Nome { get; set; }
         public double Peso { get; set; }
         [ForeignKey]
-        public Endereco endereco { get; set; }
+        public Endereco Endereco { get; set; }
     }
 }

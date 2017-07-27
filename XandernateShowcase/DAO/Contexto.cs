@@ -5,11 +5,11 @@ namespace XandernateShowcase.DAO
 {
     public class Contexto
     {
-        public Contexto()
+        public Contexto(string conn)
         {
-            Funcionarios = new DbDao<Funcionario>();
-            Pessoas = new DbDao<Pessoa>();
-            Enderecos = new DbDao<Endereco>();
+            Funcionarios = new DbDao<Funcionario>(conn);
+            Pessoas = new DbDao<Pessoa>(conn);
+            Enderecos = new DbDao<Endereco>(conn);
         }
         public IDbDao<Endereco> Enderecos;
         public IDbDao<Pessoa> Pessoas;

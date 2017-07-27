@@ -8,6 +8,6 @@ namespace XandernateShowcase.Models
         public int Id { get; set; }
         public double Salario { get; set; }
         [ForeignKey]
-        public Pessoa pessoa { get; set; }
+        public Pessoa Pessoa { get; set; }
     }
 }
