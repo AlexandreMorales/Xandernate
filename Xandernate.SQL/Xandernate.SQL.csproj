@@ -5,12 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Reflection" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />
+    <ProjectReference Include="..\Xandernate\Xandernate.csproj" />
   </ItemGroup>
 
 </Project>

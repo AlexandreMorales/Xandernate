@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Xandernate.DAO;
+using Xandernate.SQL.DAO;
+using Xandernate.SQL.Utils.Extensions;
 using Xandernate.Utils.Extensions;
 
-namespace Xandernate.Utils
+namespace Xandernate.SQL.Utils
 {
     public static class QueryBuilder
     {

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xandernate", "Xandernate\Xa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XandernateShowcase", "XandernateShowcase\XandernateShowcase.csproj", "{7E6BFC48-2E4F-4138-84A1-73D3CD2A275D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xandernate.SQL", "Xandernate.SQL\Xandernate.SQL.csproj", "{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7E6BFC48-2E4F-4138-84A1-73D3CD2A275D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E6BFC48-2E4F-4138-84A1-73D3CD2A275D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E6BFC48-2E4F-4138-84A1-73D3CD2A275D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

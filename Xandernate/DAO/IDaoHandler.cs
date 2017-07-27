@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace Xandernate.DAO
 {
-    public interface IDbDao<TClass>
+    public interface IDaoHandler<TClass>
         where TClass : new()
     {
         /// <summary>

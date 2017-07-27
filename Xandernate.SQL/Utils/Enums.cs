@@ -1,4 +1,4 @@
-﻿namespace Xandernate.Utils
+﻿namespace Xandernate.SQL.Utils
 {
     public enum GenerateScriptsEnum
     {

@@ -4,9 +4,9 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using Xandernate.DTO;
+using Xandernate.SQL.DTO;
 
-namespace Xandernate.Utils.DBFirst
+namespace Xandernate.SQL.Utils.DBFirst
 {
     public class TypeBuilderUtils
     {

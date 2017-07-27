@@ -7,8 +7,7 @@ namespace Xandernate.Utils.Extensions
     public static class TypeExtensions
     {
         public static bool IsNotPrimitive(this Type type)
-        {
-            return !type.IsArray &&
+            => !type.IsArray &&
                 type != typeof(Enum) &&
                 type != typeof(string) &&
                 type != typeof(byte) &&
@@ -18,17 +17,12 @@ namespace Xandernate.Utils.Extensions
                 type != typeof(double) &&
                 type != typeof(DateTime) &&
                 type != typeof(TimeSpan);
-        }
 
         public static PropertyInfo GetIdField(this Type type)
-        {
-            return type.GetProperties().FirstOrDefault(p => p.IsPrimaryKey());
-        }
+            => type.GetProperties().FirstOrDefault(p => p.IsPrimaryKey());
 
         public static PropertyInfo GetPropertyField(this Type type, string field)
-        {
-            return type.GetProperty(field) ?? type.GetProperty(field.SubstringLast());
-        }
+            => type.GetProperty(field) ?? type.GetProperty(field.SubstringLast());
 
         public static string TypeToStringDB(this Type type)
         {

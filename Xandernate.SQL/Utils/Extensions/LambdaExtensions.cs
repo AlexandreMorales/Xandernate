@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Xandernate.Utils.Extensions
+namespace Xandernate.SQL.Utils.Extensions
 {
     public static class LambdaExtensions
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xandernate.DTO
+namespace Xandernate.SQL.DTO
 {
     public class INFORMATION_SCHEMA_COLUMNS
     {

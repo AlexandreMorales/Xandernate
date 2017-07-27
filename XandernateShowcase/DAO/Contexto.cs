@@ -1,4 +1,5 @@
 ﻿using Xandernate.DAO;
+using Xandernate.SQL.DAO;
 using XandernateShowcase.Models;
 
 namespace XandernateShowcase.DAO
@@ -7,12 +8,12 @@ namespace XandernateShowcase.DAO
     {
         public Contexto(string conn)
         {
-            Funcionarios = new DbDao<Funcionario>(conn);
-            Pessoas = new DbDao<Pessoa>(conn);
-            Enderecos = new DbDao<Endereco>(conn);
+            Funcionarios = new DaoHandlerSQL<Funcionario>(conn);
+            Pessoas = new DaoHandlerSQL<Pessoa>(conn);
+            Enderecos = new DaoHandlerSQL<Endereco>(conn);
         }
-        public IDbDao<Endereco> Enderecos;
-        public IDbDao<Pessoa> Pessoas;
-        public IDbDao<Funcionario> Funcionarios;
+        public IDaoHandler<Endereco> Enderecos;
+        public IDaoHandler<Pessoa> Pessoas;
+        public IDaoHandler<Funcionario> Funcionarios;
     }
 }

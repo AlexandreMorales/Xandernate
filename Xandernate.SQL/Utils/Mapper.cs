@@ -2,9 +2,10 @@
 using System.Data;
 using System.Reflection;
 
+using Xandernate.SQL.Utils.Extensions;
 using Xandernate.Utils.Extensions;
 
-namespace Xandernate.Utils
+namespace Xandernate.SQL.Utils
 {
     public static class Mapper
     {

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Xandernate.DAO;
-using Xandernate.DTO;
+using Xandernate.SQL.DAO;
+using Xandernate.SQL.DTO;
 
-namespace Xandernate.Utils.DBFirst
+namespace Xandernate.SQL.Utils.DBFirst
 {
     public static class DBFirst
     {

@@ -5,19 +5,21 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-using Xandernate.DTO;
-using Xandernate.Utils;
+using Xandernate.DAO;
+using Xandernate.SQL.DTO;
+using Xandernate.SQL.Utils;
+using Xandernate.SQL.Utils.Extensions;
 using Xandernate.Utils.Extensions;
 
-namespace Xandernate.DAO
+namespace Xandernate.SQL.DAO
 {
-    public class DbDao<TClass> : IDbDao<TClass>
+    public class DaoHandlerSQL<TClass> : IDaoHandler<TClass>
         where TClass : new()
     {
         private ExecuterManager Executer;
         private Type TypeReflection;
 
-        public DbDao(string _database = null, string _provider = null)
+        public DaoHandlerSQL(string _database = null, string _provider = null)
         {
             Executer = ExecuterManager.GetInstance(_database, _provider);
             TypeReflection = typeof(TClass);

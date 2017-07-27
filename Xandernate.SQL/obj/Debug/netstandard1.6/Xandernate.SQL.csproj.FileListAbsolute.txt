@@ -1,0 +1,9 @@
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\bin\Debug\netstandard1.6\Xandernate.SQL.deps.json
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\obj\Debug\netstandard1.6\Xandernate.SQL.AssemblyInfo.cs
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\obj\Debug\netstandard1.6\Xandernate.SQL.csprojResolveAssemblyReference.cache
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\bin\Debug\netstandard1.6\Xandernate.SQL.dll
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\bin\Debug\netstandard1.6\Xandernate.SQL.pdb
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\bin\Debug\netstandard1.6\Xandernate.dll
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\bin\Debug\netstandard1.6\Xandernate.pdb
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\obj\Debug\netstandard1.6\Xandernate.SQL.dll
+C:\Users\Alexandre\workspace\Xandernate\Xandernate.SQL\obj\Debug\netstandard1.6\Xandernate.SQL.pdb

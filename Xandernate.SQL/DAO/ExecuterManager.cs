@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+
 using Xandernate.Utils;
 using Xandernate.Utils.Extensions;
+using Xandernate.SQL.Utils;
 
-namespace Xandernate.DAO
+namespace Xandernate.SQL.DAO
 {
     public class ExecuterManager
     {
