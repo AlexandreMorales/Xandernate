@@ -1,11 +1,13 @@
 /packages
 /Xandernate/bin
 /Xandernate/obj
+/Xandernate.SQL/bin
+/Xandernate.SQL/obj
 /XandernateShowcase/bin
 /XandernateShowcase/obj
-/XandernateShowcase/packages.config
 *.suo
 *.ldf
+*.mdf
+*.txt
 *.zip
 *.user
-*.mdf

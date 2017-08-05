@@ -11,21 +11,21 @@ namespace Xandernate.SQL.Utils
 {
     public static class QueryBuilder
     {
-        public static void GenericAction<TClass>(TClass[] Objs, GenerateScriptsEnum method)
+        public static void GenericAction<TDao>(TDao[] objs, GenerateScriptsEnum method)
         {
-            GenericAction(Objs, method, null);
+            GenericAction(objs, method, null);
         }
 
-        public static void GenericAction<TClass>(TClass[] Objs, GenerateScriptsEnum method, PropertyInfo[] properties)
+        public static void GenericAction<TDao>(TDao[] objs, GenerateScriptsEnum method, PropertyInfo[] properties)
         {
-            Type type = typeof(TClass);
+            Type type = typeof(TDao);
             List<object> parameters = new List<object>();
             string query = "";
             List<int> fields = null;
             ExecuterManager executer = ExecuterManager.GetInstance();
             PropertyInfo idProperty = type.GetIdField();
 
-            foreach (TClass obj in Objs)
+            foreach (TDao obj in objs)
             {
                 switch (method)
                 {
@@ -43,8 +43,8 @@ namespace Xandernate.SQL.Utils
 
             fields = executer.ExecuteQuery<int>(query, parameters.ToArray());
 
-            for (int i = 0; i < Objs.Length; i++)
-                idProperty.SetValue(Objs[i], fields[i]);
+            for (int i = 0; i < objs.Length; i++)
+                idProperty.SetValue(objs[i], fields[i]);
         }
 
         public static string GenerateCreate(Type type)

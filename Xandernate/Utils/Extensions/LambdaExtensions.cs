@@ -3,43 +3,27 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Xandernate.SQL.Utils.Extensions
+namespace Xandernate.Utils.Extensions
 {
     public static class LambdaExtensions
     {
-        public static string ExpressionToString(this BinaryExpression body)
+        public static string ExpressionToString<TLambdaFunctions>(this BinaryExpression body)
+            where TLambdaFunctions : ILambdaFunctions, new()
         {
             Expression left = body.Left;
             BinaryExpression leftB = (left as BinaryExpression);
+            TLambdaFunctions lambdaFunctions = new TLambdaFunctions();
 
             string result = (leftB == null) ?
-                (left as MemberExpression).Member.Name + body.NodeType.GetOperatorNode() :
-                leftB.ExpressionToString() + body.NodeType.GetOperatorNode() + " ";
+                (left as MemberExpression).Member.Name + lambdaFunctions.GetOperatorNode(body.NodeType) :
+                leftB.ExpressionToString<TLambdaFunctions>() + lambdaFunctions.GetOperatorNode(body.NodeType) + " ";
 
             Expression right = body.Right;
             BinaryExpression rightB = (right as BinaryExpression);
 
             return (rightB == null) ?
                 result + right.ToString().Replace("'", "").Replace("\"", "'").Replace(",", ".") + " " :
-                result + rightB.ExpressionToString().Replace("'", "").Replace("\"", "'").Replace(",", ".");
-        }
-
-        private static string GetOperatorNode(this ExpressionType nodo)
-        {
-            switch (nodo)
-            {
-                case ExpressionType.And: return "and";
-                case ExpressionType.AndAlso: return "and";
-                case ExpressionType.Or: return "or";
-                case ExpressionType.OrElse: return "or";
-                case ExpressionType.LessThan: return "<";
-                case ExpressionType.LessThanOrEqual: return "<=";
-                case ExpressionType.GreaterThan: return ">";
-                case ExpressionType.GreaterThanOrEqual: return ">=";
-                case ExpressionType.Equal: return "=";
-                case ExpressionType.NotEqual: return "<>";
-                default: return "";
-            }
+                result + rightB.ExpressionToString<TLambdaFunctions>().Replace("'", "").Replace("\"", "'").Replace(",", ".");
         }
 
         public static PropertyInfo[] GetProperties<TClass>(this Expression<Func<TClass, object>> IdentifierExpression)

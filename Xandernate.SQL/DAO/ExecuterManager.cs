@@ -25,10 +25,14 @@ namespace Xandernate.SQL.DAO
 
             return Instance;
         }
-
-        public List<TClass> ExecuteQuery<TClass>(string sql, object[] parameters = null, Func<IDataReader, TClass> IdentifierExpression = null)
-            where TClass : new()
+        
+        public List<TDao> ExecuteQuery<TDao>(string sql, object[] parameters = null, Func<IDataReader, TDao> IdentifierExpression = null)
+            where TDao : new()
         {
+            List<TDao> list = new List<TDao>();
+            Type type = typeof(TDao);
+            TDao obj;
+
             parameters = parameters ?? new object[0];
             sql = sql.Replace("\n", Environment.NewLine);
             using (IDbConnection conn = factory.getConnection())
@@ -40,18 +44,15 @@ namespace Xandernate.SQL.DAO
                         Logger.WriteLog(command.CommandText);
                         using (IDataReader reader = command.ExecuteReader())
                         {
-                            List<TClass> list = new List<TClass>();
-                            Type type = typeof(TClass);
-                            TClass obj;
                             do
                                 while (reader.Read())
                                 {
                                     if (IdentifierExpression != null)
                                         obj = IdentifierExpression.Invoke(reader);
                                     else if (type.IsNotPrimitive())
-                                        obj = Mapper.MapToObjects<TClass>(reader);
+                                        obj = Mapper.MapToObjects<TDao>(reader);
                                     else
-                                        obj = (TClass)Mapper.StringToProp(reader[0], type);
+                                        obj = (TDao)Mapper.StringToProp(reader[0], type);
 
                                     list.Add(obj);
                                 }

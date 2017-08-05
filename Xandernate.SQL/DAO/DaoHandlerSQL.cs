@@ -13,8 +13,8 @@ using Xandernate.Utils.Extensions;
 
 namespace Xandernate.SQL.DAO
 {
-    public class DaoHandlerSQL<TClass> : IDaoHandler<TClass>
-        where TClass : new()
+    public class DaoHandlerSQL<TDao> : IDaoHandler<TDao>
+        where TDao : new()
     {
         private ExecuterManager Executer;
         private Type TypeReflection;
@@ -22,7 +22,7 @@ namespace Xandernate.SQL.DAO
         public DaoHandlerSQL(string _database = null, string _provider = null)
         {
             Executer = ExecuterManager.GetInstance(_database, _provider);
-            TypeReflection = typeof(TClass);
+            TypeReflection = typeof(TDao);
             Init();
         }
 
@@ -41,37 +41,37 @@ namespace Xandernate.SQL.DAO
         }
 
 
-        public void Add(params TClass[] Objs)
+        public void Add(params TDao[] objs)
         {
-            QueryBuilder.GenericAction(Objs, GenerateScriptsEnum.GenerateInsert);
+            QueryBuilder.GenericAction(objs, GenerateScriptsEnum.GenerateInsert);
         }
 
 
-        public void AddOrUpdate(params TClass[] Objs)
+        public void AddOrUpdate(params TDao[] objs)
         {
-            QueryBuilder.GenericAction(Objs, GenerateScriptsEnum.GenerateInsertOrUpdate);
+            QueryBuilder.GenericAction(objs, GenerateScriptsEnum.GenerateInsertOrUpdate);
         }
 
-        public void AddOrUpdate(Expression<Func<TClass, object>> IdentifierExpression, params TClass[] Objs)
+        public void AddOrUpdate(Expression<Func<TDao, object>> identifierExpression, params TDao[] objs)
         {
-            PropertyInfo[] properties = IdentifierExpression.GetProperties();
-            QueryBuilder.GenericAction(Objs, GenerateScriptsEnum.GenerateInsertOrUpdate, properties);
-        }
-
-
-        public void Update(params TClass[] Objs)
-        {
-            QueryBuilder.GenericAction(Objs, GenerateScriptsEnum.GenerateUpdate);
-        }
-
-        public void Update(Expression<Func<TClass, object>> IdentifierExpression, params TClass[] Objs)
-        {
-            PropertyInfo[] properties = IdentifierExpression.GetProperties();
-            QueryBuilder.GenericAction(Objs, GenerateScriptsEnum.GenerateUpdate, properties);
+            PropertyInfo[] properties = identifierExpression.GetProperties();
+            QueryBuilder.GenericAction(objs, GenerateScriptsEnum.GenerateInsertOrUpdate, properties);
         }
 
 
-        public TClass Find<Att>(Att Id)
+        public void Update(params TDao[] objs)
+        {
+            QueryBuilder.GenericAction(objs, GenerateScriptsEnum.GenerateUpdate);
+        }
+
+        public void Update(Expression<Func<TDao, object>> identifierExpression, params TDao[] objs)
+        {
+            PropertyInfo[] properties = identifierExpression.GetProperties();
+            QueryBuilder.GenericAction(objs, GenerateScriptsEnum.GenerateUpdate, properties);
+        }
+
+
+        public TDao Find<Att>(Att id)
         {
             PropertyInfo idProperty = TypeReflection.GetIdField();
 
@@ -79,81 +79,81 @@ namespace Xandernate.SQL.DAO
                 throw new Exception("The parameter type is not the Id type of the class " + TypeReflection.Name);
 
             string query = QueryBuilder.GenerateSelect(idProperty.Name, TypeReflection);
-
-            return Executer.ExecuteQuery<TClass>(query, new object[] { Id }).FirstOrDefault();
+            
+            return Executer.ExecuteQuery<TDao>(query, new object[] { id }).FirstOrDefault();
         }
 
-        public TClass Find<Att>(Expression<Func<TClass, Att>> IdentifierExpression, Att Value)
+        public TDao Find<Att>(Expression<Func<TDao, Att>> identifierExpression, Att value)
         {
-            MemberExpression member = IdentifierExpression.Body as MemberExpression;
+            MemberExpression member = identifierExpression.Body as MemberExpression;
             string fieldName = member.Member.Name;
             string query = QueryBuilder.GenerateSelect(fieldName, TypeReflection);
 
-            return Executer.ExecuteQuery<TClass>(query, new object[] { Value }).FirstOrDefault();
+            return Executer.ExecuteQuery<TDao>(query, new object[] { value }).FirstOrDefault();
         }
 
-        public List<TClass> FindAll()
+        public List<TDao> FindAll()
         {
             string query = QueryBuilder.GenerateSelect("", TypeReflection, where: "");
 
-            return Executer.ExecuteQuery<TClass>(query);
+            return Executer.ExecuteQuery<TDao>(query);
         }
 
-        public List<TClass> WhereEquals<Att>(Expression<Func<Att>> IdentifierExpression)
+        public List<TDao> WhereEquals<Att>(Expression<Func<Att>> identifierExpression)
         {
-            MemberExpression member = IdentifierExpression.Body as MemberExpression;
+            MemberExpression member = identifierExpression.Body as MemberExpression;
             string fieldName = member.Member.Name;
-            Att Value = IdentifierExpression.Compile()();
+            Att Value = identifierExpression.Compile()();
 
             string query = QueryBuilder.GenerateSelect(fieldName, TypeReflection);
 
-            return Executer.ExecuteQuery<TClass>(query, new object[] { Value });
+            return Executer.ExecuteQuery<TDao>(query, new object[] { Value });
         }
 
-        public List<TClass> Where(Expression<Func<TClass, bool>> IdentifierExpression)
+        public List<TDao> Where(Expression<Func<TDao, bool>> identifierExpression)
         {
-            BinaryExpression body = IdentifierExpression.Body as BinaryExpression;
-            string validation = " WHERE " + body.ExpressionToString().SubstringLast(1);
+            BinaryExpression body = identifierExpression.Body as BinaryExpression;
+            string validation = $" WHERE {body.ExpressionToString<SQLLambdaFunctions>().SubstringLast(1)}";
             string query = QueryBuilder.GenerateSelect("", TypeReflection, where: validation);
 
-            return Executer.ExecuteQuery<TClass>(query);
+            return Executer.ExecuteQuery<TDao>(query);
         }
 
 
-        public void Remove(TClass Obj)
+        public void Remove(TDao obj)
         {
             string IdField = TypeReflection.GetIdField().Name;
 
             string query = QueryBuilder.GenerateDelete(IdField, TypeReflection);
 
-            Executer.ExecuteQueryNoReturn(query, TypeReflection.GetProperty(IdField).GetValue(Obj));
+            Executer.ExecuteQueryNoReturn(query, TypeReflection.GetProperty(IdField).GetValue(obj));
         }
 
-        public void Remove<Att>(Att Id)
+        public void Remove<Att>(Att id)
         {
             string query = QueryBuilder.GenerateDelete(TypeReflection.GetIdField().Name, TypeReflection);
 
-            Executer.ExecuteQueryNoReturn(query, Id);
+            Executer.ExecuteQueryNoReturn(query, id);
         }
 
-        public void Remove(Expression<Func<TClass, bool>> IdentifierExpression)
+        public void Remove(Expression<Func<TDao, bool>> identifierExpression)
         {
-            BinaryExpression body = IdentifierExpression.Body as BinaryExpression;
-            string validation = " WHERE " + body.ExpressionToString().SubstringLast(1);
+            BinaryExpression body = identifierExpression.Body as BinaryExpression;
+            string validation = $" WHERE {body.ExpressionToString<SQLLambdaFunctions>().SubstringLast(1)}";
             string query = QueryBuilder.GenerateDelete("", TypeReflection, where: validation);
 
             Executer.ExecuteQueryNoReturn(query);
         }
 
-        public void Remove<Att>(Expression<Func<TClass, Att>> IdentifierExpression, Att Value)
+        public void Remove<Att>(Expression<Func<TDao, Att>> identifierExpression, Att value)
         {
-            MemberExpression member = IdentifierExpression.Body as MemberExpression;
+            MemberExpression member = identifierExpression.Body as MemberExpression;
             string fieldName = member.Member.Name;
             string query = QueryBuilder.GenerateDelete(fieldName, TypeReflection);
 
-            Executer.ExecuteQueryNoReturn(query, Value);
+            Executer.ExecuteQueryNoReturn(query, value);
         }
-        
+
 
         private string ColumnMigrations(List<INFORMATION_SCHEMA_COLUMNS> fields)
         {
@@ -167,24 +167,24 @@ namespace Xandernate.SQL.DAO
             foreach (PropertyInfo property in properties)
             {
                 fk = "";
-                if (!fieldsNameDB.Contains(property.Name) && !fieldsNameDB.Contains(property.Name + "Id"))
+                if (!fieldsNameDB.Contains(property.Name) && !fieldsNameDB.Contains($"{property.Name}Id"))
                 {
                     if (property.IsForeignKey())
                         fk = "Id";
                     else
                         valType = property.PropertyType.TypeToStringDB();
 
-                    query += "ALTER TABLE " + TypeReflection.Name + " ADD " + property.Name + fk + " " + valType + ";\n";
+                    query += $"ALTER TABLE {TypeReflection.Name} ADD {property.Name}{fk} {valType};\n";
 
                     if (!fk.Equals(""))
-                        query = "ALTER TABLE " + TypeReflection.Name + " ADD FOREIGN KEY(" + property.Name + fk + ") REFERENCES " + property.PropertyType.Name + "(" + property.PropertyType.GetIdField().Name + ");\n";
+                        query = $"ALTER TABLE {TypeReflection.Name} ADD FOREIGN KEY({property.Name}{fk}) REFERENCES {property.PropertyType.Name}({property.PropertyType.GetIdField().Name});\n";
                 }
             }
 
             //DROP FIELDS
             foreach (string column in fieldsNameDB)
                 if (TypeReflection.GetPropertyField(column) == null)
-                    query += "ALTER TABLE " + TypeReflection.Name + " DROP COLUMN " + column + ";\n";
+                    query += $"ALTER TABLE {TypeReflection.Name} DROP COLUMN {column};\n";
 
             return query;
         }
@@ -200,7 +200,7 @@ namespace Xandernate.SQL.DAO
                 valType = property.PropertyType.TypeToStringDB();
 
                 if (!field.TypeString.Equals(Regex.Replace(valType, @"(\(.*\))", "")))
-                    query += "ALTER TABLE " + TypeReflection.Name + " ALTER COLUMN " + property.Name + " " + valType + ";\n";
+                    query += $"ALTER TABLE {TypeReflection.Name} ALTER COLUMN {property.Name} {valType};\n";
             }
 
             return query;
@@ -214,7 +214,7 @@ namespace Xandernate.SQL.DAO
                 case "odp.net": columnsSchema = "all_tab_cols"; break;
             }
 
-            string sql = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, NUMERIC_PRECISION, NUMERIC_SCALE, CHARACTER_MAXIMUM_LENGTH FROM " + columnsSchema + " WHERE TABLE_NAME = '" + TypeReflection.Name + "';\n";
+            string sql = $"SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, NUMERIC_PRECISION, NUMERIC_SCALE, CHARACTER_MAXIMUM_LENGTH FROM {columnsSchema} WHERE TABLE_NAME = '{TypeReflection.Name}';\n";
             return Executer.ExecuteQuery(sql, null, x => new INFORMATION_SCHEMA_COLUMNS
             {
                 TableName = TypeReflection.Name,

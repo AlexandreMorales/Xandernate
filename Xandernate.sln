@@ -5,9 +5,9 @@ VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xandernate", "Xandernate\Xandernate.csproj", "{CAF9B32F-F08F-444D-85BB-4BE941C1D876}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XandernateShowcase", "XandernateShowcase\XandernateShowcase.csproj", "{7E6BFC48-2E4F-4138-84A1-73D3CD2A275D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XandernateShowcase", "XandernateShowcase\XandernateShowcase.csproj", "{7E6BFC48-2E4F-4138-84A1-73D3CD2A275D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xandernate.SQL", "Xandernate.SQL\Xandernate.SQL.csproj", "{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xandernate.SQL", "Xandernate.SQL\Xandernate.SQL.csproj", "{38CC8EBC-81F0-4E73-AAA0-CBB5236D3F8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

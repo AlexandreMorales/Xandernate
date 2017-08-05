@@ -8,7 +8,6 @@ namespace Xandernate.DTO
     {
         public string Name { get; set; }
         public bool IsId { get; set; }
-        public bool IsForeignKey { get; set; }
         public ReflectionMock Type { get; set; }
         private PropertyInfo PropertyMock;
 
@@ -17,7 +16,6 @@ namespace Xandernate.DTO
             PropertyMock = property;
             Name = property.Name;
             IsId = property.IsPrimaryKey();
-            IsForeignKey = property.IsForeignKey();
             Type = new ReflectionMock(property.PropertyType);
         }
 

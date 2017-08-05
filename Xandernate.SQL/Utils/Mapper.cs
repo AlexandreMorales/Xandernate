@@ -9,13 +9,13 @@ namespace Xandernate.SQL.Utils
 {
     public static class Mapper
     {
-        public static TClass MapToObjects<TClass>(IDataRecord FieldsObj)
-            where TClass : new()
+        public static TDao MapToObjects<TDao>(IDataRecord FieldsObj)
+            where TDao : new()
         {
             object value;
-            Type type = typeof(TClass);
+            Type type = typeof(TDao);
             PropertyInfo[] properties = type.GetProperties();
-            TClass obj = new TClass();
+            TDao obj = new TDao();
 
             foreach (PropertyInfo property in properties)
             {
