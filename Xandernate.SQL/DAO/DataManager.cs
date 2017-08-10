@@ -10,21 +10,18 @@ namespace Xandernate.SQL.DAO
         private static DataManager instance;
         private static IDbConnection conn;
         private static string connectionString;
-        private static string provider;
-        public static string Provider { get { return provider; } }
+        public static DBTypes DbType;
 
-        private DataManager(string _connString, string _provider)
+        private DataManager(string conn, DBTypes type)
         {
-            connectionString = _connString;
-
-            provider = _provider ?? "System.Data.SqlClient";
-            provider = provider.Replace("System.Data.", "");
+            connectionString = conn;
+            DbType = type;
         }
 
-        public static DataManager getInstance(string _connString, string _provider)
+        public static DataManager getInstance(string conn, DBTypes type)
         {
             if (instance == null)
-                instance = new DataManager(_connString, _provider);
+                instance = new DataManager(conn, type);
 
             return instance;
         }
@@ -32,9 +29,9 @@ namespace Xandernate.SQL.DAO
         public IDbConnection getConnection()
         {
             if (conn == null)
-                switch (Provider.ToLower())
+                switch (DbType)
                 {
-                    case "sqlclient":
+                    case DBTypes.Sql:
                     default: conn = new SqlConnection(); break;
                 }
 
@@ -51,9 +48,9 @@ namespace Xandernate.SQL.DAO
         {
             IDbCommand comm = null;
 
-            switch (Provider.ToLower())
+            switch (DbType)
             {
-                case "sqlclient":
+                case DBTypes.Sql:
                 default: comm = new SqlCommand(query, (SqlConnection)conn); break;
             }
 
@@ -65,9 +62,9 @@ namespace Xandernate.SQL.DAO
             IDbDataParameter data;
             for (int i = 0; i < parameters.Length; i++)
             {
-                switch (Provider.ToLower())
+                switch (DbType)
                 {
-                    case "sqlclient":
+                    case DBTypes.Sql:
                     default:
                         data = (parameters[i].GetType() == typeof(DateTime)) ?
                                 new SqlParameter(i.ToString(), SqlDbType.DateTime) :

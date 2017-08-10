@@ -9,16 +9,16 @@ namespace Xandernate.SQL.Utils.DBFirst
 {
     public static class DBFirst
     {
-        public static void Init(string _database = null, string _provider = null)
+        public static void Init(string _database = null, DBTypes type = DBTypes.Sql)
         {
-            ExecuterManager executer = ExecuterManager.GetInstance(_database, _provider);
+            ExecuterManager executer = ExecuterManager.GetInstance(_database, type);
             TypeBuilderUtils typeBuilder = new TypeBuilderUtils();
             List<Type> newObjs = new List<Type>();
             string tableSchema = "INFORMATION_SCHEMA.TABLES";
             string columnsSchema = "INFORMATION_SCHEMA.COLUMNS";
-            switch (DataManager.Provider.ToLower())
+            switch (DataManager.DbType)
             {
-                case "odp.net": columnsSchema = "all_tab_cols"; tableSchema = "DBA_TABLES"; break;
+                case DBTypes.Oracle: columnsSchema = "all_tab_cols"; tableSchema = "DBA_TABLES"; break;
             }
 
             string sql = "SELECT t.TABLE_NAME, p.COLUMN_NAME, p.DATA_TYPE, p.IS_NULLABLE, p.NUMERIC_PRECISION, p.NUMERIC_SCALE, p.CHARACTER_MAXIMUM_LENGTH  \n" +

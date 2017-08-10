@@ -19,9 +19,9 @@ namespace Xandernate.SQL.DAO
         private ExecuterManager Executer;
         private Type TypeReflection;
 
-        public DaoHandlerSQL(string _database = null, string _provider = null)
+        public DaoHandlerSQL(string conn)
         {
-            Executer = ExecuterManager.GetInstance(_database, _provider);
+            Executer = ExecuterManager.GetInstance(conn, DBTypes.Sql);
             TypeReflection = typeof(TDao);
             Init();
         }
@@ -29,7 +29,7 @@ namespace Xandernate.SQL.DAO
         private void Init()
         {
             string createTable = QueryBuilder.GenerateCreate(TypeReflection);
-            if (DataManager.Provider.Equals("ODP.NET", StringComparison.OrdinalIgnoreCase))
+            if (DataManager.DbType == DBTypes.Oracle)
                 createTable = string.Format("BEGIN \n{0}\n END;", createTable);
 
             Executer.ExecuteQueryNoReturn(createTable);
@@ -209,9 +209,9 @@ namespace Xandernate.SQL.DAO
         private List<INFORMATION_SCHEMA_COLUMNS> GetFieldsDB()
         {
             string columnsSchema = "INFORMATION_SCHEMA.COLUMNS";
-            switch (DataManager.Provider.ToLower())
+            switch (DataManager.DbType)
             {
-                case "odp.net": columnsSchema = "all_tab_cols"; break;
+                case DBTypes.Oracle: columnsSchema = "all_tab_cols"; break;
             }
 
             string sql = $"SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, NUMERIC_PRECISION, NUMERIC_SCALE, CHARACTER_MAXIMUM_LENGTH FROM {columnsSchema} WHERE TABLE_NAME = '{TypeReflection.Name}';\n";

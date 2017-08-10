@@ -62,12 +62,12 @@ namespace Xandernate.SQL.Utils
                 {
                     valType = " int primary key not null";
 
-                    switch (DataManager.Provider.ToLower())
+                    switch (DataManager.DbType)
                     {
-                        case "sqlclient":
+                        case DBTypes.Sql:
                             valType += " IDENTITY(1,1)";
                             break;
-                        case "odp.net":
+                        case DBTypes.Oracle:
                             beforeCreate +=
                         "    BEGIN\n" +
                         "        EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_" + type.Name + "_" + property.Name + " MINVALUE 1 START WITH 1 INCREMENT BY 1';\n" +
@@ -85,7 +85,7 @@ namespace Xandernate.SQL.Utils
                 else if (property.IsForeignKey())
                 {
                     beforeCreate += GenerateCreate(property.PropertyType);
-                    valType = "Id int " + (DataManager.Provider.Equals("ODP.NET", StringComparison.OrdinalIgnoreCase) ? "" : "FOREIGN KEY")
+                    valType = "Id int " + (DataManager.DbType == DBTypes.Oracle ? "" : "FOREIGN KEY")
                         + " REFERENCES " + property.PropertyType.Name + "(" + property.PropertyType.GetIdField().Name + ") ON DELETE CASCADE, ";
                 }
                 else
@@ -97,9 +97,9 @@ namespace Xandernate.SQL.Utils
             query = query.SubstringLast() + ")";
 
 
-            switch (DataManager.Provider.ToLower())
+            switch (DataManager.DbType)
             {
-                case "odp.net":
+                case DBTypes.Oracle:
                     return beforeCreate +
                         "    BEGIN\n" +
                         "        EXECUTE IMMEDIATE '" + query + "';\n" +
@@ -109,7 +109,7 @@ namespace Xandernate.SQL.Utils
                         "            RAISE;\n" +
                         "        END IF;\n" +
                         "    END;\n";
-                case "sqlclient":
+                case DBTypes.Sql:
                 default:
                     return beforeCreate +
                         "IF  NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + type.Name + "')\n" +
@@ -198,16 +198,16 @@ namespace Xandernate.SQL.Utils
                     }
                     values += "@" + (parameters.Count - 1).ToString() + ", ";
                 }
-                else if (DataManager.Provider.Equals("ODP.NET", StringComparison.OrdinalIgnoreCase))
+                else if (DataManager.DbType == DBTypes.Oracle)
                 {
                     query += property.Name + ", ";
                     values += "seq_" + type.Name + "_" + property.Name + ".nextval, ";
                 }
             }
 
-            switch (DataManager.Provider.ToLower())
+            switch (DataManager.DbType)
             {
-                case "odp.net": currId = "SELECT dual.seq_" + type.Name + "_" + type.GetIdField().Name + ".currval from dual"; break;
+                case DBTypes.Oracle: currId = "SELECT dual.seq_" + type.Name + "_" + type.GetIdField().Name + ".currval from dual"; break;
                 default: currId = "SELECT IDENT_CURRENT('" + type.Name + "')"; break;
             }
 
@@ -227,7 +227,7 @@ namespace Xandernate.SQL.Utils
             int idIndex = parameters.Count;
             string query = "IF NOT EXISTS (" + GenerateSelectSimple(type.GetIdField().Name, type, cont: idIndex).SubstringLast() + ")\n" +
                            "  BEGIN \n" +
-                            (DataManager.Provider.Equals("SQLCLIENT", StringComparison.OrdinalIgnoreCase) ?
+                            (DataManager.DbType == DBTypes.Sql ?
                            "    SET IDENTITY_INSERT " + type.Name + " ON \n" : "") +
                            "    INSERT INTO " + type.Name + " (";
             parameters.Add(idValue);
@@ -259,7 +259,7 @@ namespace Xandernate.SQL.Utils
             }
 
             return beforeInsert + query.SubstringLast() + ") VALUES (" + values.SubstringLast() + ");\n" +
-                         (DataManager.Provider.Equals("SQLCLIENT", StringComparison.OrdinalIgnoreCase) ?
+                         (DataManager.DbType == DBTypes.Sql ?
                          "    SET IDENTITY_INSERT " + type.Name + " OFF \n" : "") +
                          "  END\n";
         }

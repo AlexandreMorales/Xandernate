@@ -1,5 +1,6 @@
-SELECT pessoa.Id as Pessoa_Id, pessoa.Idade as Pessoa_Idade, pessoa.Altura as Pessoa_Altura, pessoa.Nome as Pessoa_Nome, pessoa.Peso as Pessoa_Peso, endereco.Id as Endereco_Id, endereco.Numero as Endereco_Numero, endereco.Complemento as Endereco_Complemento, endereco.Rua as Endereco_Rua, endereco.Cidade as Endereco_Cidade, endereco.Estado as Endereco_Estado, endereco.Cep as Endereco_Cep 
-FROM Pessoa 
+SELECT funcionario.Id as Funcionario_Id, funcionario.Salario as Funcionario_Salario, pessoa.Id as Pessoa_Id, pessoa.Idade as Pessoa_Idade, pessoa.Altura as Pessoa_Altura, pessoa.Nome as Pessoa_Nome, pessoa.Peso as Pessoa_Peso, endereco.Id as Endereco_Id, endereco.Numero as Endereco_Numero, endereco.Complemento as Endereco_Complemento, endereco.Rua as Endereco_Rua, endereco.Cidade as Endereco_Cidade, endereco.Estado as Endereco_Estado, endereco.Cep as Endereco_Cep 
+FROM Funcionario 
+inner join Pessoa pessoa on  funcionario.PessoaId = pessoa.Id 
 inner join Endereco endereco on  pessoa.EnderecoId = endereco.Id 
 ;
 

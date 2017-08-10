@@ -13,15 +13,15 @@ namespace Xandernate.SQL.DAO
         private DataManager factory;
         private static ExecuterManager Instance;
 
-        private ExecuterManager(string _connString, string _provider)
+        private ExecuterManager(string conn, DBTypes type)
         {
-            factory = DataManager.getInstance(_connString, _provider);
+            factory = DataManager.getInstance(conn, type);
         }
 
-        public static ExecuterManager GetInstance(string _connString = null, string _provider = null)
+        public static ExecuterManager GetInstance(string conn = null, DBTypes type = DBTypes.Sql)
         {
             if (Instance == null)
-                Instance = new ExecuterManager(_connString, _provider);
+                Instance = new ExecuterManager(conn, type);
 
             return Instance;
         }
