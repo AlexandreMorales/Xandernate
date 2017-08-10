@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using Xandernate.Utils.Extensions;
 
 namespace Xandernate.SQL.Utils.Extensions

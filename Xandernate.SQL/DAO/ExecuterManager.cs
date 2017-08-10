@@ -25,7 +25,46 @@ namespace Xandernate.SQL.DAO
 
             return Instance;
         }
-        
+
+        public List<T> ExecuteQuerySimple<T>(string sql, object[] parameters = null)
+        {
+            List<T> list = new List<T>();
+            Type type = typeof(T);
+
+            parameters = parameters ?? new object[0];
+            sql = sql.Replace("\n", Environment.NewLine);
+            using (IDbConnection conn = factory.getConnection())
+            {
+                try
+                {
+                    using (IDbCommand command = factory.getCommand(sql, parameters))
+                    {
+                        Logger.WriteLog(command.CommandText);
+                        using (IDataReader reader = command.ExecuteReader())
+                        {
+                            do
+                                while (reader.Read())
+                                {
+                                    list.Add((T)Mapper.StringToProp(reader[0], type));
+                                }
+                            while (reader.NextResult());
+
+                            return list;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.WriteLog(e.Message);
+                    throw e;
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+        }
+
         public List<TDao> ExecuteQuery<TDao>(string sql, object[] parameters = null, Func<IDataReader, TDao> IdentifierExpression = null)
             where TDao : new()
         {

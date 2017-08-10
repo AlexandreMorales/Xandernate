@@ -6,6 +6,18 @@ namespace Xandernate.Utils.Extensions
 {
     public static class TypeExtensions
     {
+        public static object TypeToObject(this Type type, string value)
+        {
+            switch (type.Name)
+            {
+                case "Int32": return int.Parse(value);
+                case "Double": return double.Parse(value);
+                case "String": return value;
+                case "Datetime": return DateTime.Parse(value);
+                default: return value;
+            }
+        }
+
         public static bool IsNotPrimitive(this Type type)
             => !type.IsArray &&
                 type != typeof(Enum) &&

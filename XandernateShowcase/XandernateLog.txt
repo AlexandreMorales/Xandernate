@@ -1,63 +1,7 @@
-IF EXISTS (SELECT * FROM Funcionario WHERE Salario = @0)
-  BEGIN 
-    UPDATE Funcionario SET Salario=@2 WHERE Salario = @0;
-SELECT Id FROM Funcionario WHERE Salario = @0;
-  END 
-ELSE
-  BEGIN 
-    INSERT INTO Funcionario (Salario, PessoaId) VALUES (@3, @4);
-SELECT IDENT_CURRENT('Funcionario');
-  END;
-IF EXISTS (SELECT * FROM Funcionario WHERE Salario = @5)
-  BEGIN 
-    UPDATE Funcionario SET Salario=@7 WHERE Salario = @5;
-SELECT Id FROM Funcionario WHERE Salario = @5;
-  END 
-ELSE
-  BEGIN 
-    INSERT INTO Funcionario (Salario, PessoaId) VALUES (@8, @9);
-SELECT IDENT_CURRENT('Funcionario');
-  END;
-IF EXISTS (SELECT * FROM Funcionario WHERE Salario = @10)
-  BEGIN 
-    UPDATE Funcionario SET Salario=@12 WHERE Salario = @10;
-SELECT Id FROM Funcionario WHERE Salario = @10;
-  END 
-ELSE
-  BEGIN 
-    INSERT INTO Funcionario (Salario, PessoaId) VALUES (@13, @14);
-SELECT IDENT_CURRENT('Funcionario');
-  END;
-IF EXISTS (SELECT * FROM Funcionario WHERE Salario = @15)
-  BEGIN 
-    UPDATE Funcionario SET Salario=@17 WHERE Salario = @15;
-SELECT Id FROM Funcionario WHERE Salario = @15;
-  END 
-ELSE
-  BEGIN 
-    INSERT INTO Funcionario (Salario, PessoaId) VALUES (@18, @19);
-SELECT IDENT_CURRENT('Funcionario');
-  END;
-IF EXISTS (SELECT * FROM Funcionario WHERE Salario = @20)
-  BEGIN 
-    UPDATE Funcionario SET Salario=@22 WHERE Salario = @20;
-SELECT Id FROM Funcionario WHERE Salario = @20;
-  END 
-ELSE
-  BEGIN 
-    INSERT INTO Funcionario (Salario, PessoaId) VALUES (@23, @24);
-SELECT IDENT_CURRENT('Funcionario');
-  END;
-IF EXISTS (SELECT * FROM Funcionario WHERE Salario = @25)
-  BEGIN 
-    UPDATE Funcionario SET Salario=@27 WHERE Salario = @25;
-SELECT Id FROM Funcionario WHERE Salario = @25;
-  END 
-ELSE
-  BEGIN 
-    INSERT INTO Funcionario (Salario, PessoaId) VALUES (@28, @29);
-SELECT IDENT_CURRENT('Funcionario');
-  END;
+SELECT pessoa.Id as Pessoa_Id, pessoa.Idade as Pessoa_Idade, pessoa.Altura as Pessoa_Altura, pessoa.Nome as Pessoa_Nome, pessoa.Peso as Pessoa_Peso, endereco.Id as Endereco_Id, endereco.Numero as Endereco_Numero, endereco.Complemento as Endereco_Complemento, endereco.Rua as Endereco_Rua, endereco.Cidade as Endereco_Cidade, endereco.Estado as Endereco_Estado, endereco.Cep as Endereco_Cep 
+FROM Pessoa 
+inner join Endereco endereco on  pessoa.EnderecoId = endereco.Id 
+;
 
 -----------------------------------------------------------------------------------------------------
 
