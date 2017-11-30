@@ -7,14 +7,14 @@ namespace Xandernate.Utils
     {
         public static string LoggerDirectory { get; set; }
 
-        public static void WriteLog(string query)
+        public static void WriteLog(string text)
         {
             if (LoggerDirectory != null)
                 LoggerDirectory += @"\";
 
-            using (StreamWriter file = File.CreateText(LoggerDirectory + @"XandernateLog.txt"))
+            using (StreamWriter file = new StreamWriter(File.OpenWrite(LoggerDirectory + @"XandernateLog.txt")))
             {
-                file.WriteLine(query + Environment.NewLine +
+                file.WriteLine(text + Environment.NewLine +
                     "-----------------------------------------------------------------------------------------------------" +
                     Environment.NewLine);
             }

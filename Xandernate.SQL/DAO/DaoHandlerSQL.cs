@@ -32,12 +32,12 @@ namespace Xandernate.SQL.DAO
             if (DataManager.DbType == DBTypes.Oracle)
                 createTable = string.Format("BEGIN \n{0}\n END;", createTable);
 
-            Executer.ExecuteQueryNoReturn(createTable);
+            Executer.ExecuteQuery(createTable);
 
             List<INFORMATION_SCHEMA_COLUMNS> fields = GetFieldsDB();
             string migrationsSql = ColumnMigrations(fields) + TypeMigrations(fields);
             if (!String.IsNullOrEmpty(migrationsSql))
-                Executer.ExecuteQueryNoReturn(migrationsSql);
+                Executer.ExecuteQuery(migrationsSql);
         }
 
 
@@ -126,14 +126,14 @@ namespace Xandernate.SQL.DAO
 
             string query = QueryBuilder.GenerateDelete(IdField, TypeReflection);
 
-            Executer.ExecuteQueryNoReturn(query, TypeReflection.GetProperty(IdField).GetValue(obj));
+            Executer.ExecuteQuery(query, TypeReflection.GetProperty(IdField).GetValue(obj));
         }
 
         public void Remove<Att>(Att id)
         {
             string query = QueryBuilder.GenerateDelete(TypeReflection.GetIdField().Name, TypeReflection);
 
-            Executer.ExecuteQueryNoReturn(query, id);
+            Executer.ExecuteQuery(query, id);
         }
 
         public void Remove(Expression<Func<TDao, bool>> identifierExpression)
@@ -142,7 +142,7 @@ namespace Xandernate.SQL.DAO
             string validation = $" WHERE {body.ExpressionToString<SQLLambdaFunctions>().SubstringLast(1)}";
             string query = QueryBuilder.GenerateDelete("", TypeReflection, where: validation);
 
-            Executer.ExecuteQueryNoReturn(query);
+            Executer.ExecuteQuery(query);
         }
 
         public void Remove<Att>(Expression<Func<TDao, Att>> identifierExpression, Att value)
@@ -151,7 +151,7 @@ namespace Xandernate.SQL.DAO
             string fieldName = member.Member.Name;
             string query = QueryBuilder.GenerateDelete(fieldName, TypeReflection);
 
-            Executer.ExecuteQueryNoReturn(query, value);
+            Executer.ExecuteQuery(query, value);
         }
 
 

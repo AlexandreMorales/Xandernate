@@ -44,7 +44,7 @@ namespace Xandernate.SQL.DAO
             return conn;
         }
 
-        public IDbCommand getCommand(string query, object[] parameters)
+        public IDbCommand getCommand(string query, params object[] parameters)
         {
             IDbCommand comm = null;
 
@@ -57,7 +57,7 @@ namespace Xandernate.SQL.DAO
             return (parameters.Length == 0) ? comm : AddParameters(comm, parameters);
         }
 
-        private IDbCommand AddParameters(IDbCommand command, object[] parameters)
+        private IDbCommand AddParameters(IDbCommand command, params object[] parameters)
         {
             IDbDataParameter data;
             for (int i = 0; i < parameters.Length; i++)

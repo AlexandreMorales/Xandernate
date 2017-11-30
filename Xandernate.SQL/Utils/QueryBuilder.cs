@@ -185,7 +185,7 @@ namespace Xandernate.SQL.Utils
                         if (idFKValue == null || idFKValue.Equals(0))
                             idFKValue = executer.ExecuteQuery(insertFK, parametersFK.ToArray(), x => Mapper.StringToProp(x.GetDecimal(0), property.PropertyType.GetIdField().PropertyType))[0];
                         else
-                            executer.ExecuteQueryNoReturn(insertFK, parametersFK.ToArray());
+                            executer.ExecuteQuery(insertFK, parametersFK.ToArray());
 
                         query += property.Name + "Id, ";
                         parameters.Add(idFKValue);

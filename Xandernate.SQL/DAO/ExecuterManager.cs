@@ -26,7 +26,7 @@ namespace Xandernate.SQL.DAO
             return Instance;
         }
 
-        public List<T> ExecuteQuerySimple<T>(string sql, object[] parameters = null)
+        public List<T> ExecuteQuerySimple<T>(string sql, params object[] parameters)
         {
             List<T> list = new List<T>();
             Type type = typeof(T);
@@ -113,7 +113,7 @@ namespace Xandernate.SQL.DAO
             }
         }
 
-        public void ExecuteQueryNoReturn(string sql, params object[] parameters)
+        public void ExecuteQuery(string sql, params object[] parameters)
         {
             sql = sql.Replace("\n", Environment.NewLine);
             using (IDbConnection conn = factory.getConnection())

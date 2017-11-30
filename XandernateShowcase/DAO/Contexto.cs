@@ -7,7 +7,7 @@ namespace XandernateShowcase.DAO
     public class Contexto : SqlContext<Contexto>
     {
         public Contexto(string conn)
-            : base(conn)
+            : base(conn, false)
         {
         }
 
