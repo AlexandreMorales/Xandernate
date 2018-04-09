@@ -5,14 +5,9 @@ namespace Xandernate
 {
     public static class Logger
     {
-        public static string LoggerDirectory { get; set; }
-
-        public static void WriteLog(string text)
+        public static void WriteLog(string text,  string loggerDirectory = "")
         {
-            if (LoggerDirectory != null)
-                LoggerDirectory += @"\";
-
-            using (StreamWriter file = new StreamWriter(File.OpenWrite(LoggerDirectory + @"XandernateLog.txt")))
+            using (StreamWriter file = new StreamWriter($"{loggerDirectory}XandernateLog.txt", true))
             {
                 file.WriteLine(text + Environment.NewLine +
                     "-----------------------------------------------------------------------------------------------------" +
