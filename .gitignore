@@ -1,8 +1,8 @@
 /packages
 /Xandernate/bin
 /Xandernate/obj
-/Xandernate.SQL/bin
-/Xandernate.SQL/obj
+/Xandernate.Sql/bin
+/Xandernate.Sql/obj
 /XandernateShowcase/bin
 /XandernateShowcase/obj
 *.suo

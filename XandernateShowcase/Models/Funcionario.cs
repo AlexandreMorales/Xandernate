@@ -7,7 +7,7 @@ namespace XandernateShowcase.Models
         [PrimaryKey]
         public int Id { get; set; }
         public double Salario { get; set; }
-        [ForeignKey]
+        [ForeignObject]
         public Pessoa Pessoa { get; set; }
     }
 }

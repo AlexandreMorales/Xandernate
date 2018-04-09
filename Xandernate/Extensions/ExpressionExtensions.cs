@@ -1,14 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Reflection;
+using Xandernate;
 
-namespace Xandernate.Utils.Extensions
+namespace System.Linq.Expressions
 {
-    public static class LambdaExtensions
+    public static class ExpressionExtensions
     {
         public static string ExpressionToString<TLambdaFunctions>(this BinaryExpression body)
-            where TLambdaFunctions : ILambdaFunctions, new()
+            where TLambdaFunctions : IExpressionFunctions, new()
         {
             Expression left = body.Left;
             BinaryExpression leftB = (left as BinaryExpression);
@@ -22,11 +21,11 @@ namespace Xandernate.Utils.Extensions
             BinaryExpression rightB = (right as BinaryExpression);
 
             return (rightB == null) ?
-                result + right.ToString().Replace("'", "").Replace("\"", "'").Replace(",", ".") + " " :
-                result + rightB.ExpressionToString<TLambdaFunctions>().Replace("'", "").Replace("\"", "'").Replace(",", ".");
+                result + right.ToString().Replace("'", string.Empty).Replace("\"", "'").Replace(",", ".") + " " :
+                result + rightB.ExpressionToString<TLambdaFunctions>().Replace("'", string.Empty).Replace("\"", "'").Replace(",", ".");
         }
 
-        public static PropertyInfo[] GetProperties<TClass>(this Expression<Func<TClass, object>> IdentifierExpression)
+        public static IEnumerable<PropertyInfo> GetProperties<TClass>(this Expression<Func<TClass, object>> IdentifierExpression)
         {
             NewExpression newExpression = (IdentifierExpression.Body as NewExpression);
             if (newExpression == null)
@@ -38,9 +37,11 @@ namespace Xandernate.Utils.Extensions
                 else
                     property = (unaryExpression.Operand as MemberExpression).Member as PropertyInfo;
 
-                return new PropertyInfo[] { property };
+                yield return property;
             }
-            return newExpression.Members.Select(x => typeof(TClass).GetProperty(x.Name)).ToArray();
+            else
+                foreach (MemberInfo member in newExpression.Members)
+                    yield return typeof(TClass).GetProperty(member.Name);
         }
     }
 }

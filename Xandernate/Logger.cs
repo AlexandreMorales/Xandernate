@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Xandernate.Utils
+namespace Xandernate
 {
     public static class Logger
     {

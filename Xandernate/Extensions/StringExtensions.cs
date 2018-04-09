@@ -1,4 +1,4 @@
-﻿namespace Xandernate.Utils.Extensions
+﻿namespace System
 {
     public static class StringExtensions
     {

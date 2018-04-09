@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.IO;
-using XandernateShowcase.DAO;
+using XandernateShowcase.Infra;
 using XandernateShowcase.Models;
 
 namespace XandernateShowcase
@@ -10,12 +10,10 @@ namespace XandernateShowcase
     {
         static void Main(string[] args)
         {
-            //DBFirst.Init();
-
-            var configuration = 
+            IConfigurationRoot configuration = 
                 new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile("appsettings.json")
                     .Build();
             
             Contexto db = new Contexto(configuration.GetConnectionString("Default"));
@@ -44,7 +42,7 @@ namespace XandernateShowcase
 
             db.Funcionarios.AddOrUpdate(f => f.Salario, f1, f2, f3, f4, f5, f6);
 
-            List<Funcionario> funcionarios = db.Funcionarios.FindAll();
+            IEnumerable<Funcionario> funcionarios = db.Funcionarios.FindAll();
             p1 = db.Pessoas.Find(1);
             p1 = db.Pessoas.Find(p => p.Nome, "Joseane");
 
@@ -52,7 +50,7 @@ namespace XandernateShowcase
             db.Pessoas.AddOrUpdate(p3);
             db.Pessoas.AddOrUpdate(x => x.Nome, new Pessoa { Endereco = e1, Altura = 2, Idade = 200, Nome = "Joseane", Peso = 56 });
 
-            List<Pessoa> pessoas = db.Pessoas.FindAll();
+            IEnumerable<Pessoa> pessoas = db.Pessoas.FindAll();
 
             p1.Idade = 25;
             p1.Peso = 35;

@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace Xandernate.Utils
+namespace Xandernate
 {
-    public interface ILambdaFunctions
+    public interface IExpressionFunctions
     {
         string GetOperatorNode(ExpressionType nodo);
     }
