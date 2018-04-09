@@ -19,21 +19,22 @@ namespace Xandernate.Sql.Context
             _conn = conn;
 
             if (createDbOnInitialize)
-                CreateDB();
+                CreateDb();
         }
 
-        public virtual void CreateDB()
+        public virtual void CreateDb()
         {
-            Type type = typeof(TContext);
+            Type contextType = typeof(TContext);
 
-            FieldInfo[] fields = type.GetFields();
+            FieldInfo[] fields = contextType.GetFields();
+            Type type = typeof(EntityHandlerSqlServer<>);
+
             foreach (FieldInfo field in fields)
             {
                 if (field.FieldType.GetGenericTypeDefinition() == typeof(IEntityHandler<>))
                 {
                     Type[] args = field.FieldType.GetGenericArguments();
-                    Type d1 = typeof(EntityHandlerSqlServer<>);
-                    Type makeme = d1.MakeGenericType(args);
+                    Type makeme = type.MakeGenericType(args);
                     object o = Activator.CreateInstance(makeme, _conn);
                     field.SetValue(this, o);
                 }
@@ -44,7 +45,7 @@ namespace Xandernate.Sql.Context
             => ExecuterManager.GetInstance(_conn).ExecuteQuerySimple<T>(sql, parameters);
 
         public IEnumerable<TEntity> Query<TEntity>(string sql, object[] parameters = null, Func<IDataReader, TEntity> IdentifierExpression = null)
-            where TEntity : new()
+            where TEntity : class, new()
             => ExecuterManager.GetInstance(_conn).ExecuteQuery(sql, parameters, IdentifierExpression);
 
         public void Query(string sql, params object[] parameters)

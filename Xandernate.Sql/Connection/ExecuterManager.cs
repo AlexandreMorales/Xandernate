@@ -41,7 +41,7 @@ namespace Xandernate.Sql.Connection
                             do
                                 while (reader.Read())
                                 {
-                                    list.Add((T)Mapper.StringToProp(reader[0], type));
+                                    list.Add((T)Mapper.ConvertFromType(reader[0], type));
                                 }
                             while (reader.NextResult());
 
@@ -61,12 +61,15 @@ namespace Xandernate.Sql.Connection
             }
         }
 
+        public IEnumerable<TEntity> ExecuteQuery<TEntity>(string sql, params object[] parameters)
+            where TEntity : class, new()
+            => ExecuteQuery<TEntity>(sql, parameters, null);
+
         public IEnumerable<TEntity> ExecuteQuery<TEntity>(string sql, object[] parameters = null, Func<IDataReader, TEntity> IdentifierExpression = null)
-            where TEntity : new()
+            where TEntity : class, new()
         {
             List<TEntity> list = new List<TEntity>();
             Type type = typeof(TEntity);
-            TEntity obj;
 
             parameters = parameters ?? new object[] { };
             sql = sql.Replace("\n", Environment.NewLine);
@@ -82,12 +85,14 @@ namespace Xandernate.Sql.Connection
                             do
                                 while (reader.Read())
                                 {
+                                    TEntity obj;
+
                                     if (IdentifierExpression != null)
                                         obj = IdentifierExpression(reader);
                                     else if (type.IsNotPrimitive())
-                                        obj = Mapper.MapToObjects<TEntity>(reader);
+                                        obj = Mapper.MapToObjects<TEntity>(reader, type);
                                     else
-                                        obj = (TEntity)Mapper.StringToProp(reader[0], type);
+                                        obj = (TEntity)Mapper.ConvertFromType(reader[0], type);
 
                                     list.Add(obj);
                                 }

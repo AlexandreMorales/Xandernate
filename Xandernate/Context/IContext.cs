@@ -9,7 +9,7 @@ namespace Xandernate.Context
         IEnumerable<T> QuerySimple<T>(string sql, params object[] parameters);
 
         IEnumerable<TEntity> Query<TEntity>(string sql, object[] parameters = null, Func<IDataReader, TEntity> IdentifierExpression = null)
-            where TEntity : new();
+            where TEntity : class, new();
 
         void Query(string sql, params object[] parameters);
     }

@@ -1,28 +1,39 @@
 ﻿using System;
 using System.Data;
 using System.Reflection;
+using Xandernate.ReflectionCache;
 
 namespace Xandernate.Sql
 {
     internal static class Mapper
     {
-        public static TEntity MapToObjects<TEntity>(IDataRecord FieldsObj)
-            where TEntity : new()
+        public static TEntity MapToObjects<TEntity>(IDataRecord FieldsObj, Type type = null)
+            where TEntity : class, new()
         {
-            object value;
-            Type type = typeof(TEntity);
-            PropertyInfo[] properties = type.GetProperties();
+            if (type == null)
+                type = typeof(TEntity);
+
             TEntity obj = new TEntity();
 
-            foreach (PropertyInfo property in properties)
+            return MapToObjects(obj, type, FieldsObj) as TEntity;
+        }
+
+        public static object MapToObjects(IDataRecord FieldsObj, Type type)
+        {
+            object obj = Activator.CreateInstance(type);
+
+            return MapToObjects(obj, type, FieldsObj);
+        }
+
+        private static object MapToObjects(object obj, Type type, IDataRecord FieldsObj)
+        {
+            ReflectionEntityCache typeCache = ReflectionEntityCache.GetOrCreateEntity(type);
+
+            foreach (ReflectionPropertyCache property in typeCache.Properties)
             {
-                if (property.IsForeignObj())
-                    value = typeof(Mapper)
-                                .GetMethod("MapToObjects")
-                                .MakeGenericMethod(property.PropertyType)
-                                .Invoke(null, new object[] { FieldsObj });
-                else
-                    value = StringToProp(FieldsObj[type.Name + "_" + property.Name], property.PropertyType);
+                object value = (property.IsForeignObj) ?
+                    MapToObjects(FieldsObj, property.Type) :
+                    ConvertFromType(FieldsObj[$"{type.Name}_{property.Name}"], property.Type);
 
                 property.SetValue(obj, value);
             }
@@ -30,7 +41,7 @@ namespace Xandernate.Sql
             return obj;
         }
 
-        public static object StringToProp(object value, Type type)
+        public static object ConvertFromType(object value, Type type)
         {
             switch (type.Name)
             {
@@ -43,7 +54,7 @@ namespace Xandernate.Sql
             return value;
         }
 
-        public static Type StringDBToType(string type)
+        public static Type ColumnNameToType(string type)
         {
             switch (type)
             {

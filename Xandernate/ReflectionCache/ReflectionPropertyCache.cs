@@ -8,25 +8,23 @@ namespace Xandernate.ReflectionCache
         public readonly string Name;
         public readonly bool IsPrimaryKey;
         public readonly bool IsForeignObj;
-        public readonly Type PropertyType;
-        private readonly PropertyInfo Property;
+        public readonly Type Type;
 
-        public ReflectionPropertyCache(PropertyInfo property, bool isPrimaryKey)
+        private readonly PropertyInfo _property;
+
+        internal ReflectionPropertyCache(PropertyInfo property, bool isPrimaryKey)
         {
-            Property = property;
-            PropertyType = Property.PropertyType;
-            Name = Property.Name;
+            _property = property;
+            Type = _property.PropertyType;
+            Name = _property.Name;
             IsPrimaryKey = isPrimaryKey;
-            IsForeignObj = Property.IsForeignObj();
+            IsForeignObj = _property.IsForeignObj();
         }
 
         public void SetValue(object obj, object value)
-            => Property.SetValue(obj, value);
+            => _property.SetValue(obj, value);
 
         public object GetValue(object obj)
-            => Property.GetValue(obj);
-
-        public object GetObject(string value)
-            => value.To(PropertyType);
+            => _property.GetValue(obj);
     }
 }

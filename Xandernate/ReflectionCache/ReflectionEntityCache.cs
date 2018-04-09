@@ -7,7 +7,7 @@ namespace Xandernate.ReflectionCache
 {
     public class ReflectionEntityCache
     {
-        private static readonly Dictionary<Type, ReflectionEntityCache> _dict = new Dictionary<Type, ReflectionEntityCache>();
+        private static readonly Dictionary<Type, ReflectionEntityCache> _entityCache = new Dictionary<Type, ReflectionEntityCache>();
 
         public readonly List<ReflectionPropertyCache> Properties;
         public readonly string Name;
@@ -31,19 +31,21 @@ namespace Xandernate.ReflectionCache
             }
         }
 
-        public ReflectionPropertyCache GetPropertyField(string field)
-            => Properties.FirstOrDefault(p => p.Name == field || p.Name == field.SubstringLast());
-
-
         public static ReflectionEntityCache GetOrCreateEntity(Type type)
         {
-            if (_dict.TryGetValue(type, out ReflectionEntityCache value))
+            if (_entityCache.TryGetValue(type, out ReflectionEntityCache value))
                 return value;
 
             value = new ReflectionEntityCache(type);
-            _dict.Add(type, value);
+            _entityCache.Add(type, value);
 
             return value;
         }
+
+        public static ReflectionEntityCache GetOrCreateEntity<TEntity>()
+            => GetOrCreateEntity(typeof(TEntity));
+
+        public ReflectionPropertyCache GetProperty(string name)
+            => Properties.FirstOrDefault(p => name == p.Name || name == $"{p.Name}Id");
     }
 }

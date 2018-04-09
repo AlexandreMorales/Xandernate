@@ -41,5 +41,15 @@ namespace System
                 type != typeof(double) &&
                 type != typeof(DateTime) &&
                 type != typeof(TimeSpan);
+
+        public static object GetDefaultValue(this Type type)
+        {
+            if (type == typeof(Guid))
+                return Guid.Empty;
+            if (type.IsValueType && (type == typeof(int) || type == typeof(long) || type == typeof(decimal)))
+                return 0;
+
+            return null;
+        }
     }
 }

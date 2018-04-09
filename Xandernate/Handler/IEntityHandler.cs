@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 namespace Xandernate.Handler
 {
     public interface IEntityHandler<TEntity>
-        where TEntity : new()
+        where TEntity : class, new()
     {
         /// <summary>
         /// Adds an array of objects in the database.

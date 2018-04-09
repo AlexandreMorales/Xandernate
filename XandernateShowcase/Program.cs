@@ -20,7 +20,7 @@ namespace XandernateShowcase
 
             db.Query("DROP TABLE Funcionario;\nDROP TABLE Pessoa;\nDROP TABLE Endereco;");
 
-            db.CreateDB();
+            db.CreateDb();
 
             Endereco e1 = new Endereco() { Cep = "92200-270", Estado = "RS", Cidade = "Canoas", Rua = "Paes Lemes", Numero = "720", Complemento = "c/48" };
             Endereco e2 = new Endereco() { Cep = "56284-468", Estado = "RS", Cidade = "Tramandai", Rua = "Almirante Tramandaré", Numero = "936" };

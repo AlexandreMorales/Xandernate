@@ -3,8 +3,7 @@
     internal enum GenerateScriptsEnum
     {
         GenerateInsertOrUpdate,
-        GenerateInsert,
-        GenerateUpdate
+        GenerateInsert
     }
 
     internal enum DbTypes

@@ -7,41 +7,41 @@ namespace Xandernate.Sql.Connection
 {
     internal class DataManager
     {
-        private static DataManager instance;
-        private static IDbConnection conn;
-        private static string connectionString;
+        private static DataManager _instance;
+        private static IDbConnection _conn;
+        private static string _connectionString;
         public static DbTypes DbType;
 
         private DataManager(string conn, DbTypes type)
         {
-            connectionString = conn;
+            _connectionString = conn;
             DbType = type;
         }
 
         public static DataManager GetInstance(string conn, DbTypes type)
         {
-            if (instance == null)
-                instance = new DataManager(conn, type);
+            if (_instance == null)
+                _instance = new DataManager(conn, type);
 
-            return instance;
+            return _instance;
         }
 
         public IDbConnection getConnection()
         {
-            if (conn == null)
+            if (_conn == null)
                 switch (DbType)
                 {
                     case DbTypes.SqlServer:
-                    default: conn = new SqlConnection(); break;
+                    default: _conn = new SqlConnection(); break;
                 }
 
-            if (conn.State != ConnectionState.Open)
+            if (_conn.State != ConnectionState.Open)
             {
-                conn.ConnectionString = connectionString;
-                conn.Open();
+                _conn.ConnectionString = _connectionString;
+                _conn.Open();
             }
 
-            return conn;
+            return _conn;
         }
 
         public IDbCommand getCommand(string query, params object[] parameters)
@@ -51,7 +51,7 @@ namespace Xandernate.Sql.Connection
             switch (DbType)
             {
                 case DbTypes.SqlServer:
-                default: comm = new SqlCommand(query, (SqlConnection)conn); break;
+                default: comm = new SqlCommand(query, (SqlConnection)_conn); break;
             }
 
             return (parameters.Length == 0) ? comm : AddParameters(comm, parameters);
@@ -80,7 +80,7 @@ namespace Xandernate.Sql.Connection
         }
 
         public static string GetDatabase()
-            => connectionString
+            => _connectionString
                 .Split(';')
                 .FirstOrDefault(x => x.Split('=')[0].Equals("Initial Catalog", StringComparison.OrdinalIgnoreCase))
                 .Split('=')[1];

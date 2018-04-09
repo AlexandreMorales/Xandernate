@@ -6,42 +6,41 @@ namespace System.Linq.Expressions
 {
     public static class ExpressionExtensions
     {
-        public static string ExpressionToString<TLambdaFunctions>(this BinaryExpression body)
-            where TLambdaFunctions : IExpressionFunctions, new()
+        public static string ExpressionToString(this BinaryExpression body, IExpressionFunctions expressionFunctions)
         {
             Expression left = body.Left;
-            BinaryExpression leftB = (left as BinaryExpression);
-            TLambdaFunctions lambdaFunctions = new TLambdaFunctions();
-
-            string result = (leftB == null) ?
-                (left as MemberExpression).Member.Name + lambdaFunctions.GetOperatorNode(body.NodeType) :
-                leftB.ExpressionToString<TLambdaFunctions>() + lambdaFunctions.GetOperatorNode(body.NodeType) + " ";
-
             Expression right = body.Right;
-            BinaryExpression rightB = (right as BinaryExpression);
+            string nodeString = expressionFunctions.GetOperatorNode(body.NodeType);
 
-            return (rightB == null) ?
-                result + right.ToString().Replace("'", string.Empty).Replace("\"", "'").Replace(",", ".") + " " :
-                result + rightB.ExpressionToString<TLambdaFunctions>().Replace("'", string.Empty).Replace("\"", "'").Replace(",", ".");
+            string leftString = (left is BinaryExpression leftB) ?
+                leftB.ExpressionToString(expressionFunctions) + nodeString + " " :
+                (left as MemberExpression).Member.Name + nodeString;
+
+            return (right is BinaryExpression rightB) ?
+                leftString + rightB.ExpressionToString(expressionFunctions).NormalizeString() :
+                leftString + right.ToString().NormalizeString() + " ";
         }
+
+        private static string NormalizeString(this string str)
+            => str.Replace("'", string.Empty).Replace("\"", "'").Replace(",", ".");
 
         public static IEnumerable<PropertyInfo> GetProperties<TClass>(this Expression<Func<TClass, object>> IdentifierExpression)
         {
-            NewExpression newExpression = (IdentifierExpression.Body as NewExpression);
-            if (newExpression == null)
+            if (IdentifierExpression.Body is NewExpression newExpression)
             {
-                UnaryExpression unaryExpression = (IdentifierExpression.Body as UnaryExpression);
-                PropertyInfo property;
-                if (unaryExpression == null)
-                    property = (IdentifierExpression.Body as MemberExpression).Member as PropertyInfo;
-                else
-                    property = (unaryExpression.Operand as MemberExpression).Member as PropertyInfo;
+                Type type = typeof(TClass);
 
-                yield return property;
+                foreach (MemberInfo member in newExpression.Members)
+                    yield return type.GetProperty(member.Name);
             }
             else
-                foreach (MemberInfo member in newExpression.Members)
-                    yield return typeof(TClass).GetProperty(member.Name);
+            {
+                MemberExpression member = (IdentifierExpression.Body is UnaryExpression unaryExpression) ?
+                    unaryExpression.Operand as MemberExpression :
+                    IdentifierExpression.Body as MemberExpression;
+
+                yield return member.Member as PropertyInfo;
+            }
         }
     }
 }

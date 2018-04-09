@@ -2,7 +2,7 @@
 
 namespace Xandernate.Sql.Entities
 {
-    internal class INFORMATION_SCHEMA_COLUMNS
+    internal class InformationSchemaColumns
     {
         public string TableName { get; set; }
         public string Name { get; set; }
