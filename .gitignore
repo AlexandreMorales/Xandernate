@@ -11,5 +11,4 @@
 *.txt
 *.zip
 *.user
-*.sql
 /.vs/Xandernate/v15/Server/sqlite3
