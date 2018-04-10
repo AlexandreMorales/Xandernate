@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using System.Text.RegularExpressions;
 using Xandernate.ReflectionCache;
 using Xandernate.Sql.Connection;
@@ -14,22 +15,22 @@ namespace Xandernate.Sql.Handler
         public static void GenericAction<TEntity>(ReflectionEntityCache typeCache, IList<TEntity> objs, GenerateScriptsEnum method, IEnumerable<ReflectionPropertyCache> properties = null)
         {
             IList<object> parameters = new List<object>();
-            string query = string.Empty;
+            StringBuilder query = new StringBuilder();
 
             foreach (TEntity obj in objs)
             {
                 switch (method)
                 {
                     case GenerateScriptsEnum.GenerateInsertOrUpdate:
-                        query += GenerateInsertOrUpdate(typeCache, obj, parameters, properties);
+                        query.AppendLine(GenerateInsertOrUpdate(typeCache, obj, parameters, properties));
                         break;
                     case GenerateScriptsEnum.GenerateInsert:
-                        query += GenerateInsert(typeCache, obj, parameters);
+                        query.AppendLine(GenerateInsert(typeCache, obj, parameters));
                         break;
                 }
             }
 
-            List<string> columns = ExecuterManager.GetInstance().ExecuteQuerySimple<string>(query, parameters.ToArray()).ToList();
+            List<string> columns = ExecuterManager.GetInstance().ExecuteQuerySimple<string>(query.ToString(), parameters.ToArray()).ToList();
 
             for (int i = 0; i < objs.Count; i++)
                 typeCache.PrimaryKey.SetValue(objs[i], columns[i].To(typeCache.PrimaryKey.Type));
@@ -37,79 +38,83 @@ namespace Xandernate.Sql.Handler
 
         public static string GenerateCreate(ReflectionEntityCache typeCache)
         {
-            string beforeCreate = string.Empty;
-            string query = $"CREATE TABLE {typeCache.Name} (";
+            StringBuilder beforeCreate = new StringBuilder();
+            StringBuilder query = new StringBuilder();
 
             foreach (ReflectionPropertyCache property in typeCache.Properties)
             {
-                query += property.Name;
+                StringBuilder column = new StringBuilder(property.Name);
 
                 if (property.IsPrimaryKey)
-                {
-                    query += $" {property.Type.ToStringDb()} PRIMARY KEY NOT NULL IDENTITY(1,1), ";
-                }
-                else if(property.IsForeignObj)
+                    column.Append($" { property.Type.ToStringDb()} PRIMARY KEY NOT NULL IDENTITY(1,1), ");
+                else if (property.IsForeignObj)
                 {
                     ReflectionEntityCache fk = ReflectionEntityCache.GetOrCreateEntity(property.Type);
-                    beforeCreate += GenerateCreate(fk);
-                    query = $"{query}{fk.PrimaryKey.Name} {fk.PrimaryKey.Type.ToStringDb()} FOREIGN KEY REFERENCES {property.Name}({typeCache.PrimaryKey.Name}) ON DELETE CASCADE, ";
+                    beforeCreate.AppendLine(GenerateCreate(fk));
+                    column.Append($"{fk.PrimaryKey.Name} {fk.PrimaryKey.Type.ToStringDb()} FOREIGN KEY REFERENCES {property.Name}({typeCache.PrimaryKey.Name}) ON DELETE CASCADE, ");
                 }
                 else
-                    query = $"{query} {property.Type.ToStringDb()}, ";
+                    column.Append($" {property.Type.ToStringDb()}, ");
+
+                query.AppendLine(column.ToString());
             }
 
-            query = $"{query.SubstringLast()})";
-
-            return beforeCreate +
-                   $"IF  NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{typeCache.Name}')\n" +
-                    "   BEGIN\n" +
-                   $"       {query};\n" +
-                    "   END;\n";
+            return
+$@"{beforeCreate}
+IF  NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{typeCache.Name}')
+    BEGIN 
+        CREATE TABLE {typeCache.Name} ({query.SubstringLast()})
+    END;";
         }
 
         public static string GenerateInsertOrUpdate<TEntity>(ReflectionEntityCache typeCache, TEntity obj, IList<object> parameters, IEnumerable<ReflectionPropertyCache> properties)
         {
-            string where = " WHERE ";
-
+            StringBuilder where = new StringBuilder(" WHERE ");
             if (properties != null && properties.Any())
             {
+                StringBuilder whereLine = new StringBuilder();
+
                 foreach (ReflectionPropertyCache property in properties)
                 {
                     object propValue = property.GetValue(obj);
-                    where += property.Name;
+                    whereLine.Append(property.Name);
                     if (propValue == null)
-                        where += " IS NULL";
+                        whereLine.Append(" IS NULL");
                     else
                     {
-                        where += $" = @{parameters.Count()}";
+                        whereLine.Append($" = @{parameters.Count()}");
                         parameters.Add(propValue);
                     }
-                    where += " AND ";
+                    whereLine.Append(" AND ");
                 }
-                where = where.Substring(0, where.Length - 5);
+
+                where.AppendLine(whereLine.SubstringLast(5));
             }
             else
             {
-                where += $"{typeCache.PrimaryKey.Name} = @{parameters.Count}";
+                where.AppendLine($"{typeCache.PrimaryKey.Name} = @{parameters.Count}");
                 parameters.Add(typeCache.PrimaryKey.GetValue(obj));
             }
 
-            return $"IF EXISTS ({GenerateSelectSimple(typeCache, string.Empty, where).SubstringLast()})\n" +
-                    "  BEGIN \n" +
-                   $"    {GenerateUpdate(typeCache, obj, parameters, properties, where)}" +
-                    "  END \n" +
-                    "ELSE\n" +
-                    "  BEGIN \n" +
-                   $"    {GenerateInsert(typeCache, obj, parameters)}" +
-                    "  END;\n";
+            string whereStr = where.ToString();
+
+            return
+$@"IF EXISTS ({GenerateSelectSimple(typeCache.Name, string.Empty, whereStr).SubstringLast()})
+    BEGIN 
+        {GenerateUpdate(typeCache, obj, parameters, properties, whereStr)}
+        {GenerateGenericSimple(typeCache.Name, $"SELECT {typeCache.PrimaryKey.Name}", where: whereStr)}
+    END
+ELSE
+    BEGIN 
+        {GenerateInsert(typeCache, obj, parameters)}
+    END;";
         }
 
         public static string GenerateInsert(ReflectionEntityCache typeCache, object obj, IList<object> parameters)
         {
-            Type type = obj.GetType();
             ExecuterManager executer = ExecuterManager.GetInstance();
-            string values = string.Empty,
-                   query = $"INSERT INTO {typeCache.Name} (";
+            StringBuilder values = new StringBuilder(),
+                          columns = new StringBuilder();
 
             foreach (ReflectionPropertyCache property in typeCache.Properties)
             {
@@ -122,42 +127,42 @@ namespace Xandernate.Sql.Handler
                         ReflectionEntityCache fk = ReflectionEntityCache.GetOrCreateEntity(property.Type);
                         object fkPkValue = fk.PrimaryKey.GetValue(propertyVal);
                         List<object> parametersFK = new List<object>();
-                        string insertFK = GenerateInsertFK(fk, propertyVal, parametersFK);
+                        string insertFK = GenerateInsertForeignObject(fk, propertyVal, parametersFK);
                         if (fkPkValue.Equals(fk.PrimaryKey.Type.GetDefaultValue()))
                             fkPkValue = executer.ExecuteQuery(insertFK, parametersFK.ToArray(), x => Mapper.ConvertFromType(x.GetDecimal(0), fk.PrimaryKey.Type)).FirstOrDefault();
                         else
                             executer.ExecuteQuery(insertFK, parametersFK.ToArray());
 
-                        query += $"{property.Name}{fk.PrimaryKey.Name}, ";
+                        columns.Append($"{property.Name}{fk.PrimaryKey.Name}, ");
                         parameters.Add(fkPkValue);
                         fk.PrimaryKey.SetValue(propertyVal, fkPkValue);
                     }
                     else
                     {
-                        query += property.Name + ", ";
+                        columns.Append($"{property.Name}, ");
                         parameters.Add(propertyVal ?? string.Empty);
                     }
-                    values += $"@{(parameters.Count - 1).ToString()}, ";
+                    values.Append($"@{parameters.Count - 1}, ");
                 }
             }
 
-            return $"{query.SubstringLast()}) VALUES ({values.SubstringLast()});\nSELECT IDENT_CURRENT('{typeCache.Name}');\n";
+            return 
+$@"INSERT INTO {typeCache.Name} ({columns.SubstringLast()}) VALUES ({values.SubstringLast()});
+SELECT IDENT_CURRENT('{typeCache.Name}');";
         }
 
-        private static string GenerateInsertFK(ReflectionEntityCache typeCache, object obj, IList<object> parameters)
+        private static string GenerateInsertForeignObject(ReflectionEntityCache typeCache, object obj, IList<object> parameters)
         {
             object pkValue = typeCache.PrimaryKey.GetValue(obj);
 
             if (pkValue.Equals(typeCache.PrimaryKey.Type.GetDefaultValue()))
                 return GenerateInsert(typeCache, obj, parameters);
-            
-            string values = string.Empty,
-                   beforeInsert = string.Empty;
-            int idIndex = parameters.Count;
-            string query = "IF NOT EXISTS (" + GenerateSelectSimple(typeCache, typeCache.PrimaryKey.Name, cont: idIndex).SubstringLast() + ")\n" +
-                           "  BEGIN \n" +
-                           "    SET IDENTITY_INSERT " + typeCache.Name + " ON \n" +
-                           "    INSERT INTO " + typeCache.Name + " (";
+
+            StringBuilder values = new StringBuilder(),
+                          beforeInsert = new StringBuilder(),
+                          columns = new StringBuilder();
+
+            int pkIndex = parameters.Count;
             parameters.Add(pkValue);
 
             foreach (ReflectionPropertyCache property in typeCache.Properties)
@@ -168,33 +173,38 @@ namespace Xandernate.Sql.Handler
                     if (propertyVal != null && property.IsForeignObj)
                     {
                         ReflectionEntityCache fk = ReflectionEntityCache.GetOrCreateEntity(property.Type);
-                        beforeInsert += GenerateInsertFK(fk, propertyVal, parameters);
+                        beforeInsert.AppendLine(GenerateInsertForeignObject(fk, propertyVal, parameters));
 
-                        query += $"{property.Name}{fk.PrimaryKey.Name}, ";
+                        columns.Append($"{property.Name}{fk.PrimaryKey.Name}, ");
                         parameters.Add(fk.PrimaryKey.GetValue(propertyVal));
                     }
                     else
                     {
-                        query += $"{property.Name}, ";
+                        columns.Append($"{property.Name}, ");
                         parameters.Add(propertyVal ?? string.Empty);
                     }
-                    values += "@" + (parameters.Count - 1).ToString() + ", ";
+                    values.Append($"@{parameters.Count - 1}, ");
                 }
                 else
                 {
-                    query += property.Name + ", ";
-                    values += "@" + idIndex.ToString() + ", ";
+                    columns.Append($"{property.Name}, ");
+                    values.Append($"@{pkIndex}, ");
                 }
             }
 
-            return beforeInsert + query.SubstringLast() + ") VALUES (" + values.SubstringLast() + ");\n" +
-                         "    SET IDENTITY_INSERT " + typeCache.Name + " OFF \n" +
-                         "  END\n";
+            return 
+$@"{beforeInsert}
+IF NOT EXISTS ({GenerateSelectSimple(typeCache.Name, typeCache.PrimaryKey.Name, cont: pkIndex).SubstringLast()})
+    BEGIN
+        SET IDENTITY_INSERT {typeCache.Name} ON 
+        INSERT INTO {typeCache.Name} ({columns.SubstringLast()}) VALUES ({values.SubstringLast()});
+        SET IDENTITY_INSERT {typeCache.Name} OFF 
+    END";
         }
 
         public static string GenerateUpdate<TEntity>(ReflectionEntityCache typeCache, TEntity obj, IList<object> parameters, IEnumerable<ReflectionPropertyCache> properties, string where = null)
         {
-            string query = $"UPDATE {typeCache.Name} SET ";
+            StringBuilder setValues = new StringBuilder();
 
             where = where ?? $" WHERE {typeCache.PrimaryKey.Name}=@{parameters.Count()}";
             if (properties == null || !properties.Any())
@@ -211,20 +221,17 @@ namespace Xandernate.Sql.Handler
                         propertyVal = fk.PrimaryKey.GetValue(propertyVal);
                         if (propertyVal.Equals(fk.PrimaryKey.Type.GetDefaultValue()))
                         {
-                            query = $"{query}{fk.Name}{fk.PrimaryKey.Name}=@{parameters.Count}, ";
+                            setValues.Append($"{fk.Name}{fk.PrimaryKey.Name}=@{parameters.Count}, ");
                             parameters.Add(propertyVal);
                         }
                     }
                     else
                     {
-                        query = $"{query}{property.Name}=@{parameters.Count}, ";
-                        parameters.Add(propertyVal ?? string.Empty);
+                        setValues.Append($"{property.Name}=@{parameters.Count}, ");
+                        parameters.Add(propertyVal);
                     }
             }
-            return 
-$@"{query.SubstringLast()}{where};
-SELECT {typeCache.PrimaryKey.Name} FROM {typeCache.Name}{where};
-";
+            return $"UPDATE {typeCache.Name} SET {setValues.SubstringLast()} {where}";
         }
 
         public static string GenerateWhere<TEntity>(Expression<Func<TEntity, bool>> identifierExpression, IExpressionFunctions expressionFunctions)
@@ -237,89 +244,91 @@ SELECT {typeCache.PrimaryKey.Name} FROM {typeCache.Name}{where};
         public static string GenerateSelect(ReflectionEntityCache typeCache, string fieldName, string where = null, int cont = 0)
         {
             where = where ?? $"WHERE {typeCache.Name.ToLower()}.{fieldName}=@{cont}";
-            string query = "SELECT ";
-            string joins = GenerateSelectFields(typeCache, ref query);
-            return 
+            StringBuilder query = new StringBuilder("SELECT ");
+            string joins = GenerateSelectFields(typeCache, query);
+            return
 $@"{query.SubstringLast()} 
     FROM {typeCache.Name} 
-    {joins}{where};
-";
+        {joins}
+    {where};";
         }
 
-        private static string GenerateSelectFields(ReflectionEntityCache typeCache, ref string query)
+        private static string GenerateSelectFields(ReflectionEntityCache typeCache, StringBuilder query)
         {
-            string joins = string.Empty;
+            StringBuilder joins = new StringBuilder();
 
             foreach (ReflectionPropertyCache property in typeCache.Properties)
                 if (property.IsForeignObj)
                 {
                     ReflectionEntityCache fk = ReflectionEntityCache.GetOrCreateEntity(property.Type);
-                    joins = $"{joins}INNER JOIN {fk.Name} {fk.Name.ToLower()} ON {typeCache.Name.ToLower()}.{property.Name}{fk.PrimaryKey.Name} = {fk.Name.ToLower()}.{fk.PrimaryKey.Name} \n";
-                    joins = $"{joins}{GenerateSelectFields(fk, ref query)}";
+                    joins.AppendLine($"INNER JOIN {fk.Name} {fk.Name.ToLower()} ON {typeCache.Name.ToLower()}.{property.Name}{fk.PrimaryKey.Name} = {fk.Name.ToLower()}.{fk.PrimaryKey.Name}");
+                    joins.AppendLine(GenerateSelectFields(fk, query));
                 }
                 else
-                    query = $"{query}{typeCache.Name.ToLower()}.{property.Name} AS {typeCache.Name}_{property.Name}, ";
+                    query.Append($"{typeCache.Name.ToLower()}.{property.Name} AS {typeCache.Name}_{property.Name}, ");
 
-            return joins;
+            return joins.ToString();
         }
 
-        public static string GenerateDelete(ReflectionEntityCache typeCache, string fieldName, string where = null, int cont = 0)
-            => GenerateGenericSimple(typeCache, "DELETE", fieldName, where, cont);
+        public static string GenerateDelete(string tableName, string fieldName, string where = null, int cont = 0)
+            => GenerateGenericSimple(tableName, "DELETE", where, cont, fieldName);
 
-        private static string GenerateSelectSimple(ReflectionEntityCache typeCache, string fieldName, string where = null, int cont = 0)
-            => GenerateGenericSimple(typeCache, "SELECT *", fieldName, where, cont);
+        private static string GenerateSelectSimple(string tableName, string fieldName, string where = null, int cont = 0)
+            => GenerateGenericSimple(tableName, "SELECT *", where, cont, fieldName);
 
-        private static string GenerateGenericSimple(ReflectionEntityCache typeCache, string action, string fieldName, string where, int cont)
-            => $"{action} FROM {typeCache.Name}{where ?? $" WHERE {fieldName}=@{cont}"};\n";
+        private static string GenerateGenericSimple(string tableName, string action, string where, int cont = 0, string fieldName = null)
+            => $"{action} FROM {tableName}{where ?? $" WHERE {fieldName}=@{cont}"};";
 
 
-        public static string ColumnMigrations(ReflectionEntityCache typeCache, IEnumerable<InformationSchemaColumns> columns)
+        public static string GenerateSelectColumns(string tableName)
+            => $"SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{tableName}';";
+
+        public static string GenerateColumnMigrations(ReflectionEntityCache typeCache, IEnumerable<InformationSchemaColumns> columns)
         {
             List<string> dbColumns = columns.Select(x => x.Name).ToList();
-            string query = string.Empty;
+            StringBuilder query = new StringBuilder();
 
-            //ADD FIELDS
+            //ADD COLUMNS
             foreach (ReflectionPropertyCache property in typeCache.Properties)
             {
-                if (!dbColumns.Contains(property.Name) && !dbColumns.Contains($"{property.Name}Id"))
+                string propertyName = property.Name;
+                ReflectionEntityCache fk = ReflectionEntityCache.GetOrCreateEntity(property.Type);
+
+                if (property.IsForeignObj)
+                    propertyName = $"{propertyName}{fk.PrimaryKey.Name}";
+
+                if (!dbColumns.Contains(propertyName))
                 {
-                    string fkPkName = string.Empty;
                     string valType = property.Type.ToStringDb();
 
+                    query.AppendLine($"ALTER TABLE {typeCache.Name} ADD {propertyName} {valType};");
+
                     if (property.IsForeignObj)
-                    {
-                        ReflectionEntityCache fk = ReflectionEntityCache.GetOrCreateEntity(property.Type);
-                        fkPkName = fk.PrimaryKey.Name;
-                    }
-
-                    query += $"ALTER TABLE {typeCache.Name} ADD {property.Name}{fkPkName} {valType};\n";
-
-                    if (!string.IsNullOrEmpty(fkPkName))
-                        query = $"ALTER TABLE {typeCache.Name} ADD FOREIGN KEY({property.Name}{fkPkName}) REFERENCES {property.Type.Name}({fkPkName});\n";
+                        query.AppendLine($"ALTER TABLE {typeCache.Name} ADD FOREIGN KEY({propertyName}) REFERENCES {fk.Name}({fk.PrimaryKey.Name});");
                 }
             }
 
-            //DROP FIELDS
+            //DROP COLUMNS
             foreach (string column in dbColumns)
                 if (typeCache.GetProperty(column) == null)
-                    query += $"ALTER TABLE {typeCache.Name} DROP COLUMN {column};\n";
+                    query.AppendLine($"ALTER TABLE {typeCache.Name} DROP COLUMN {column};");
 
-            return query;
+            return query.ToString();
         }
 
-        public static string TypeMigrations(ReflectionEntityCache typeCache, IEnumerable<InformationSchemaColumns> columns)
+        public static string GenerateTypeMigrations(ReflectionEntityCache typeCache, IEnumerable<InformationSchemaColumns> columns)
         {
-            string query = string.Empty;
+            StringBuilder query = new StringBuilder();
             foreach (InformationSchemaColumns column in columns)
             {
                 ReflectionPropertyCache property = typeCache.GetProperty(column.Name);
                 string valType = property.Type.ToStringDb();
 
                 if (!column.TypeString.Equals(Regex.Replace(valType, @"(\(.*\))", string.Empty)))
-                    query += $"ALTER TABLE {typeCache.Name} ALTER COLUMN {property.Name} {valType};\n";
+                    query.AppendLine($"ALTER TABLE {typeCache.Name} ALTER COLUMN {property.Name} {valType};");
             }
 
-            return query;
+            return query.ToString();
         }
     }
 }

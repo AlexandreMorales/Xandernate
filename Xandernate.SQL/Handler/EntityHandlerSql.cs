@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using Xandernate.Handler;
 using Xandernate.ReflectionCache;
 using Xandernate.Sql.Connection;
@@ -10,7 +11,7 @@ using Xandernate.Sql.Entities;
 
 namespace Xandernate.Sql.Handler
 {
-    public class EntityHandlerSqlServer<TEntity> : IEntityHandler<TEntity>
+    public class EntityHandlerSql<TEntity> : IEntityHandler<TEntity>
         where TEntity : class, new()
     {
         private readonly ExecuterManager _executer;
@@ -19,13 +20,13 @@ namespace Xandernate.Sql.Handler
 
         private readonly string _query_delete;
 
-        public EntityHandlerSqlServer(string conn)
+        public EntityHandlerSql(string conn)
         {
             _executer = ExecuterManager.GetInstance(conn);
             _reflectionCache = ReflectionEntityCache.GetOrCreateEntity<TEntity>();
             _expressionFunctions = new SqlExpressionFunctions();
 
-            _query_delete = QueryBuilder.GenerateDelete(_reflectionCache, _reflectionCache.PrimaryKey.Name);
+            _query_delete = QueryBuilder.GenerateDelete(_reflectionCache.Name, _reflectionCache.PrimaryKey.Name);
 
             Init();
         }
@@ -37,7 +38,7 @@ namespace Xandernate.Sql.Handler
             _executer.ExecuteQuery(createTable);
 
             IEnumerable<InformationSchemaColumns> columns = GetDbColumns();
-            string migrationsSql = QueryBuilder.ColumnMigrations(_reflectionCache, columns) + QueryBuilder.TypeMigrations(_reflectionCache, columns);
+            string migrationsSql = QueryBuilder.GenerateColumnMigrations(_reflectionCache, columns) + QueryBuilder.GenerateTypeMigrations(_reflectionCache, columns);
 
             if (!string.IsNullOrEmpty(migrationsSql))
                 _executer.ExecuteQuery(migrationsSql);
@@ -65,20 +66,20 @@ namespace Xandernate.Sql.Handler
         {
             IEnumerable<ReflectionPropertyCache> properties = identifierExpression?.GetProperties().Select(p => _reflectionCache.GetProperty(p.Name));
 
-            string query = string.Empty;
+            StringBuilder query = new StringBuilder();
             IList<object> parameters = new List<object>();
 
             foreach (TEntity obj in objs)
-                query += QueryBuilder.GenerateUpdate(_reflectionCache, obj, parameters, properties);
+                query.AppendLine(QueryBuilder.GenerateUpdate(_reflectionCache, obj, parameters, properties));
 
-            _executer.ExecuteQuery(query, parameters);
+            _executer.ExecuteQuery(query.ToString(), parameters);
         }
 
 
         public TEntity Find<Att>(Att pk)
         {
             if (!typeof(Att).Equals(_reflectionCache.PrimaryKey.Type))
-                throw new Exception("The parameter type is not the Id type of the class " + _reflectionCache.PrimaryKey.Name);
+                throw new Exception($"The parameter type is not the Primary Key type of the class {_reflectionCache.PrimaryKey.Name}");
 
             string query = QueryBuilder.GenerateSelect(_reflectionCache, _reflectionCache.PrimaryKey.Name);
 
@@ -126,14 +127,14 @@ namespace Xandernate.Sql.Handler
         public void Remove(Expression<Func<TEntity, bool>> identifierExpression)
         {
             string where = QueryBuilder.GenerateWhere(identifierExpression, _expressionFunctions);
-            string query = QueryBuilder.GenerateDelete(_reflectionCache, string.Empty, where: where);
+            string query = QueryBuilder.GenerateDelete(_reflectionCache.Name, string.Empty, where: where);
 
             _executer.ExecuteQuery(query);
         }
 
         public void Remove<Att>(Expression<Func<TEntity, Att>> identifierExpression, Att value)
         {
-            string query = QueryBuilder.GenerateDelete(_reflectionCache, GetMemberName(identifierExpression));
+            string query = QueryBuilder.GenerateDelete(_reflectionCache.Name, GetMemberName(identifierExpression));
 
             _executer.ExecuteQuery(query, value);
         }
@@ -149,14 +150,14 @@ namespace Xandernate.Sql.Handler
         
         private IEnumerable<InformationSchemaColumns> GetDbColumns()
         {
-            string sql = $"SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{_reflectionCache.Name}';\n";
-            return _executer.ExecuteQuery(sql, null, x => new InformationSchemaColumns
-            {
-                TableName = _reflectionCache.Name,
-                Name = x.GetString(0),
-                TypeString = x.GetString(1),
-                Type = Mapper.ColumnNameToType(x.GetString(1))
-            });
+            return _executer.ExecuteQuery(QueryBuilder.GenerateSelectColumns(_reflectionCache.Name), null, 
+                x => new InformationSchemaColumns
+                {
+                    TableName = _reflectionCache.Name,
+                    Name = x.GetString(0),
+                    TypeString = x.GetString(1),
+                    Type = Mapper.ColumnNameToType(x.GetString(1))
+                });
         }
 
     }

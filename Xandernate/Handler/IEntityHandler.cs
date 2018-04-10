@@ -48,7 +48,7 @@ namespace Xandernate.Handler
         /// Finds an object in the database by its primary key.
         /// </summary>
         /// <typeparam name="Att">The primary key field of the object.</typeparam>
-        /// <param name="id">The primary key of the object to be found.</param>
+        /// <param name="pk">The primary key of the object to be found.</param>
         /// <returns>Null if it dont find any, or the object found.</returns>
         TEntity Find<Att>(Att pk);
 

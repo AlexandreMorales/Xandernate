@@ -9,9 +9,10 @@ namespace Xandernate
         {
             using (StreamWriter file = new StreamWriter($"{loggerDirectory}XandernateLog.txt", true))
             {
-                file.WriteLine(text + Environment.NewLine +
-                    "-----------------------------------------------------------------------------------------------------" +
-                    Environment.NewLine);
+                file.WriteLine(
+$@"{text}
+-----------------------------------------------------------------------------------------------------
+");
             }
         }
     }

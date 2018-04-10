@@ -27,7 +27,7 @@ namespace Xandernate.Sql.Context
             Type contextType = typeof(TContext);
 
             FieldInfo[] fields = contextType.GetFields();
-            Type type = typeof(EntityHandlerSqlServer<>);
+            Type type = typeof(EntityHandlerSql<>);
 
             foreach (FieldInfo field in fields)
             {

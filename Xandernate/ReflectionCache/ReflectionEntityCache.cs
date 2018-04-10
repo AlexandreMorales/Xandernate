@@ -46,6 +46,17 @@ namespace Xandernate.ReflectionCache
             => GetOrCreateEntity(typeof(TEntity));
 
         public ReflectionPropertyCache GetProperty(string name)
-            => Properties.FirstOrDefault(p => name == p.Name || name == $"{p.Name}Id");
+            => Properties.FirstOrDefault(property =>
+            {
+                string propertyName = property.Name;
+
+                if (property.IsForeignObj)
+                {
+                    ReflectionEntityCache fk = GetOrCreateEntity(property.Type);
+                    propertyName = $"{propertyName}{fk.PrimaryKey.Name}";
+                }
+
+                return name == propertyName;
+            });
     }
 }

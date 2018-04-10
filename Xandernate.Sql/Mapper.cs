@@ -7,7 +7,7 @@ namespace Xandernate.Sql
 {
     internal static class Mapper
     {
-        public static TEntity MapToObjects<TEntity>(IDataRecord FieldsObj, Type type = null)
+        public static TEntity MapToEntity<TEntity>(IDataRecord dataRecord, Type type)
             where TEntity : class, new()
         {
             if (type == null)
@@ -15,25 +15,16 @@ namespace Xandernate.Sql
 
             TEntity obj = new TEntity();
 
-            return MapToObjects(obj, type, FieldsObj) as TEntity;
-        }
-
-        public static object MapToObjects(IDataRecord FieldsObj, Type type)
-        {
-            object obj = Activator.CreateInstance(type);
-
-            return MapToObjects(obj, type, FieldsObj);
-        }
-
-        private static object MapToObjects(object obj, Type type, IDataRecord FieldsObj)
-        {
             ReflectionEntityCache typeCache = ReflectionEntityCache.GetOrCreateEntity(type);
 
             foreach (ReflectionPropertyCache property in typeCache.Properties)
             {
                 object value = (property.IsForeignObj) ?
-                    MapToObjects(FieldsObj, property.Type) :
-                    ConvertFromType(FieldsObj[$"{type.Name}_{property.Name}"], property.Type);
+                    typeof(Mapper)
+                            .GetMethod(nameof(Mapper.MapToEntity), BindingFlags.Static)
+                            .MakeGenericMethod(property.Type)
+                            .Invoke(null, new object[] { dataRecord, property.Type }) :
+                    ConvertFromType(dataRecord[$"{type.Name}_{property.Name}"], property.Type);
 
                 property.SetValue(obj, value);
             }

@@ -13,12 +13,12 @@ namespace System.Linq.Expressions
             string nodeString = expressionFunctions.GetOperatorNode(body.NodeType);
 
             string leftString = (left is BinaryExpression leftB) ?
-                leftB.ExpressionToString(expressionFunctions) + nodeString + " " :
-                (left as MemberExpression).Member.Name + nodeString;
+                $"{leftB.ExpressionToString(expressionFunctions)}{nodeString} " :
+                $"{(left as MemberExpression).Member.Name}{nodeString}";
 
             return (right is BinaryExpression rightB) ?
-                leftString + rightB.ExpressionToString(expressionFunctions).NormalizeString() :
-                leftString + right.ToString().NormalizeString() + " ";
+                $"{leftString}{rightB.ExpressionToString(expressionFunctions).NormalizeString()}" :
+                $"{leftString}{right.ToString().NormalizeString()} ";
         }
 
         private static string NormalizeString(this string str)
