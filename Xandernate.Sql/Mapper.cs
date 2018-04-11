@@ -21,7 +21,7 @@ namespace Xandernate.Sql
             {
                 object value = (property.IsForeignObj) ?
                     typeof(Mapper)
-                            .GetMethod(nameof(Mapper.MapToEntity), BindingFlags.Static)
+                            .GetMethod(nameof(Mapper.MapToEntity))
                             .MakeGenericMethod(property.Type)
                             .Invoke(null, new object[] { dataRecord, property.Type }) :
                     ConvertFromType(dataRecord[$"{type.Name}_{property.Name}"], property.Type);

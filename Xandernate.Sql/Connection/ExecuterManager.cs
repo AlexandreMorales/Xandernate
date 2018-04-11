@@ -32,7 +32,7 @@ namespace Xandernate.Sql.Connection
             {
                 try
                 {
-                    using (IDbCommand command = factory.getCommand(NormalizeQueryString(query), parameters))
+                    using (IDbCommand command = factory.getCommand(query, parameters))
                     {
                         Logger.WriteLog(command.CommandText);
                         using (IDataReader reader = command.ExecuteReader())
@@ -75,7 +75,7 @@ namespace Xandernate.Sql.Connection
             {
                 try
                 {
-                    using (IDbCommand command = factory.getCommand(NormalizeQueryString(query), parameters))
+                    using (IDbCommand command = factory.getCommand(query, parameters))
                     {
                         Logger.WriteLog(command.CommandText);
                         using (IDataReader reader = command.ExecuteReader())
@@ -118,7 +118,7 @@ namespace Xandernate.Sql.Connection
             {
                 try
                 {
-                    using (IDbCommand command = factory.getCommand(NormalizeQueryString(query), parameters))
+                    using (IDbCommand command = factory.getCommand(query, parameters))
                     {
                         Logger.WriteLog(command.CommandText);
                         command.ExecuteNonQuery();
@@ -135,8 +135,5 @@ namespace Xandernate.Sql.Connection
                 }
             }
         }
-
-        private static string NormalizeQueryString(string query)
-            => query.Replace("\n", Environment.NewLine);
     }
 }

@@ -72,7 +72,7 @@ namespace Xandernate.Sql.Handler
             foreach (TEntity obj in objs)
                 query.AppendLine(QueryBuilder.GenerateUpdate(_reflectionCache, obj, parameters, properties));
 
-            _executer.ExecuteQuery(query.ToString(), parameters);
+            _executer.ExecuteQuery(query.ToString(), parameters.ToArray());
         }
 
 

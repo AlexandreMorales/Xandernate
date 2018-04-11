@@ -48,6 +48,7 @@ namespace XandernateShowcase
 
             p3.Altura = 2;
             db.Pessoas.AddOrUpdate(p3);
+            // TODO
             db.Pessoas.AddOrUpdate(x => x.Nome, new Pessoa { Endereco = e1, Altura = 2, Idade = 200, Nome = "Joseane", Peso = 56 });
 
             IEnumerable<Pessoa> pessoas = db.Pessoas.FindAll();
