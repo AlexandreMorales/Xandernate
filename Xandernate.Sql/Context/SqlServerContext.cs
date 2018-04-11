@@ -9,12 +9,13 @@ using Xandernate.Sql.Handler;
 
 namespace Xandernate.Sql.Context
 {
-    public abstract class SqlServerContext<TContext> : IContext
+    public abstract class SqlContext<TContext> : IContext
         where TContext : IContext
     {
-        private string _conn { get; set; }
+        private readonly string _conn;
+        private SqlDatabaseHandler _databaseHandler;
 
-        public SqlServerContext(string conn, bool createDbOnInitialize = true)
+        public SqlContext(string conn, bool createDbOnInitialize = true)
         {
             _conn = conn;
 
@@ -27,28 +28,31 @@ namespace Xandernate.Sql.Context
             Type contextType = typeof(TContext);
 
             FieldInfo[] fields = contextType.GetFields();
-            Type type = typeof(EntityHandlerSql<>);
+            Type handlerType = typeof(SqlEntityHandler<>);
+
+            _databaseHandler = new SqlDatabaseHandler(_conn);
+            ExecuterManager.CreateInstance(_conn);
 
             foreach (FieldInfo field in fields)
             {
                 if (field.FieldType.GetGenericTypeDefinition() == typeof(IEntityHandler<>))
                 {
                     Type[] args = field.FieldType.GetGenericArguments();
-                    Type makeme = type.MakeGenericType(args);
-                    object o = Activator.CreateInstance(makeme, _conn);
-                    field.SetValue(this, o);
+                    Type genericHandlerType = handlerType.MakeGenericType(args);
+                    object handler = Activator.CreateInstance(genericHandlerType);
+                    field.SetValue(this, handler);
                 }
             }
         }
 
         public IEnumerable<T> QuerySimple<T>(string sql, params object[] parameters)
-            => ExecuterManager.GetInstance(_conn).ExecuteQuerySimple<T>(sql, parameters);
+            => ExecuterManager.GetInstance().ExecuteQuerySimple<T>(sql, parameters);
 
         public IEnumerable<TEntity> Query<TEntity>(string sql, object[] parameters = null, Func<IDataReader, TEntity> IdentifierExpression = null)
             where TEntity : class, new()
-            => ExecuterManager.GetInstance(_conn).ExecuteQuery(sql, parameters, IdentifierExpression);
+            => ExecuterManager.GetInstance().ExecuteQuery(sql, parameters, IdentifierExpression);
 
         public void Query(string sql, params object[] parameters)
-            => ExecuterManager.GetInstance(_conn).ExecuteQuery(sql, parameters);
+            => ExecuterManager.GetInstance().ExecuteQuery(sql, parameters);
     }
 }

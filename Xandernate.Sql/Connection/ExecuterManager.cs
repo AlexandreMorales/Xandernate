@@ -14,11 +14,11 @@ namespace Xandernate.Sql.Connection
             factory = DataManager.GetInstance(conn, type);
         }
 
-        public static ExecuterManager GetInstance(string conn = null, DbTypes type = DbTypes.SqlServer)
-        {
-            if (Instance == null)
-                Instance = new ExecuterManager(conn, type);
+        public static ExecuterManager GetInstance() => Instance;
 
+        public static ExecuterManager CreateInstance(string conn, DbTypes type = DbTypes.SqlServer)
+        {
+            Instance = new ExecuterManager(conn, type);
             return Instance;
         }
 
@@ -28,11 +28,11 @@ namespace Xandernate.Sql.Connection
             Type type = typeof(T);
 
             parameters = parameters ?? new object[0];
-            using (IDbConnection conn = factory.getConnection())
+            using (IDbConnection conn = factory.GetConnection())
             {
                 try
                 {
-                    using (IDbCommand command = factory.getCommand(query, parameters))
+                    using (IDbCommand command = factory.GetCommand(query, parameters))
                     {
                         Logger.WriteLog(command.CommandText);
                         using (IDataReader reader = command.ExecuteReader())
@@ -71,11 +71,11 @@ namespace Xandernate.Sql.Connection
             Type type = typeof(TEntity);
 
             parameters = parameters ?? new object[] { };
-            using (IDbConnection conn = factory.getConnection())
+            using (IDbConnection conn = factory.GetConnection())
             {
                 try
                 {
-                    using (IDbCommand command = factory.getCommand(query, parameters))
+                    using (IDbCommand command = factory.GetCommand(query, parameters))
                     {
                         Logger.WriteLog(command.CommandText);
                         using (IDataReader reader = command.ExecuteReader())
@@ -114,11 +114,11 @@ namespace Xandernate.Sql.Connection
 
         public void ExecuteQuery(string query, params object[] parameters)
         {
-            using (IDbConnection conn = factory.getConnection())
+            using (IDbConnection conn = factory.GetConnection())
             {
                 try
                 {
-                    using (IDbCommand command = factory.getCommand(query, parameters))
+                    using (IDbCommand command = factory.GetCommand(query, parameters))
                     {
                         Logger.WriteLog(command.CommandText);
                         command.ExecuteNonQuery();

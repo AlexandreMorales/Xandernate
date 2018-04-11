@@ -36,6 +36,21 @@ namespace Xandernate.Sql.Handler
                 typeCache.PrimaryKey.SetValue(objs[i], columns[i].To(typeCache.PrimaryKey.Type));
         }
 
+        public static string GenerateCreateDb(ref string connection)
+        {
+            string database = connection.Split(';').FirstOrDefault(p => p.Trim().StartsWith("Database="));
+            string dbName = database.Trim().Split('=')[1];
+
+            connection = connection.Replace($"{database};", string.Empty);
+
+            return 
+$@"USE MASTER
+IF (DB_ID(N'{dbName}') IS NULL)
+    BEGIN
+        CREATE DATABASE [{dbName}]
+    END;";
+        }
+
         public static string GenerateCreate(ReflectionEntityCache typeCache)
         {
             StringBuilder beforeCreate = new StringBuilder();

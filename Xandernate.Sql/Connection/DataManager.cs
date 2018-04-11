@@ -26,7 +26,7 @@ namespace Xandernate.Sql.Connection
             return _instance;
         }
 
-        public IDbConnection getConnection()
+        public IDbConnection GetConnection()
         {
             if (_conn == null)
                 switch (DbType)
@@ -44,7 +44,7 @@ namespace Xandernate.Sql.Connection
             return _conn;
         }
 
-        public IDbCommand getCommand(string query, params object[] parameters)
+        public IDbCommand GetCommand(string query, params object[] parameters)
         {
             IDbCommand comm = null;
 

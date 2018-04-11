@@ -11,7 +11,7 @@ using Xandernate.Sql.Entities;
 
 namespace Xandernate.Sql.Handler
 {
-    public class EntityHandlerSql<TEntity> : IEntityHandler<TEntity>
+    public class SqlEntityHandler<TEntity> : IEntityHandler<TEntity>
         where TEntity : class, new()
     {
         private readonly ExecuterManager _executer;
@@ -20,9 +20,9 @@ namespace Xandernate.Sql.Handler
 
         private readonly string _query_delete;
 
-        public EntityHandlerSql(string conn)
+        public SqlEntityHandler()
         {
-            _executer = ExecuterManager.GetInstance(conn);
+            _executer = ExecuterManager.GetInstance();
             _reflectionCache = ReflectionEntityCache.GetOrCreateEntity<TEntity>();
             _expressionFunctions = new SqlExpressionFunctions();
 

@@ -4,7 +4,7 @@ using XandernateShowcase.Models;
 
 namespace XandernateShowcase.Infra
 {
-    public class Contexto : SqlServerContext<Contexto>
+    public class Contexto : SqlContext<Contexto>
     {
         public Contexto(string conn)
             : base(conn, false)

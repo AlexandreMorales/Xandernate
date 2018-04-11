@@ -18,7 +18,7 @@ namespace XandernateShowcase
             
             Contexto db = new Contexto(configuration.GetConnectionString("Default"));
 
-            db.Query("DROP TABLE Funcionario;\nDROP TABLE Pessoa;\nDROP TABLE Endereco;");
+            //db.Query("DROP TABLE Funcionario;\nDROP TABLE Pessoa;\nDROP TABLE Endereco;");
 
             db.CreateDb();
 
